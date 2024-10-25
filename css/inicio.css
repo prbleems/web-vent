@@ -1,0 +1,238 @@
+body {
+  margin: 0;
+  padding: 0;
+ font-family: "Courier New", Courier, monospace; font-family: "Courier New", Courier, monospace;
+  background-color: white; /* Cambié a fondo blanco */
+  color: black; /* Texto negro para asegurar que sea visible */
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+}
+
+.loader-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
+
+.loader {
+  --sizeLoader: 70px;
+  --sizeLoaderHalf: calc(var(--sizeLoader) / 2);
+  --stepBtf: calc(var(--sizeLoader) / 10);
+  display: flex;
+  position: relative;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: var(--sizeLoader);
+  height: var(--sizeLoader);
+}
+
+.loader:hover {
+  cursor: progress;
+}
+
+.loader[anim1] {
+  animation: anim1 0.3s alternate ease-in-out infinite;
+}
+
+.loader:not([anim1]) {
+  right: var(--sizeLoaderHalf);
+  transform-origin: center right;
+  animation: moveAround 2s linear infinite;
+}
+
+.loader[showShadow] {
+  filter: drop-shadow(0 10px 10px #060606de);
+}
+
+.loader svg:nth-child(1) {
+  position: relative;
+  height: 100%;
+  left: 2%;
+  transform-origin: center right;
+  animation: wing 0.5s ease-in-out infinite;
+}
+
+.loader svg:nth-child(2) {
+  height: 50%;
+}
+
+.loader svg:nth-child(3) {
+  position: relative;
+  height: 100%;
+  left: -2%;
+  transform-origin: center left;
+  animation: wing 0.5s ease-in-out infinite;
+}
+
+.content {
+  display: none;
+}
+
+@keyframes wing {
+  0% {
+    transform: rotateY(0deg);
+  }
+
+  50% {
+    transform: rotateY(60deg);
+  }
+
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+@keyframes moveAround {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes anim1 {
+  from {
+    transform: translateY(0px);
+  }
+
+  to {
+    transform: translateY(var(--stepBtf));
+  }
+}
+
+/* Timer styles */
+#time {
+  font-size: 15px;
+  font-family: "Courier New", Courier, monospace;
+  margin-top: 25px;
+  color: black; /* Ensure text color is visible */
+}
+
+/* Additional styles for links */
+a {
+  color: black;
+  text-decoration: none;
+  font-size: 18px;
+  margin: 10px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+nav {
+  margin-top: 20px;
+}
+.styled-list {
+  font-family: "Courier New", Courier, monospace;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.styled-list li {
+  margin: 10px 0;
+  font-size: 18px;
+}
+
+.styled-list a {
+  text-decoration: none;
+  color: #333;
+  transition: color 0.3s;
+}
+
+.styled-list a:hover {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+.instagram-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+}
+
+.instagram-icon {
+  width: 30px;
+  height: 30px;
+  filter: grayscale(100%);
+  transition: transform 0.3s;
+}
+.disabled {
+  color: gray; /* Color gris para indicar que está deshabilitado */
+  pointer-events: none; /* Desactiva eventos de mouse, no se puede hacer clic */
+  cursor: not-allowed; /* Cambia el cursor a uno de no permitido */
+}
+
+        /* Animación de puntos suspensivos */
+        .dots::after {
+          content: '';
+          display: inline-block;
+          width: 1em;
+          text-align: left;
+          animation: dots 1.5s steps(3, end) infinite;
+      }
+
+      @keyframes dots {
+          0%, 20% {
+              content: '';
+          }
+          40% {
+              content: '.';
+          }
+          60% {
+              content: '..';
+          }
+          80%, 100% {
+              content: '...';
+          }
+      }
+      .social-buttons {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .tiktok-icon {
+        width: 65px;
+        height: 65px;
+        filter: grayscale(100%);
+    }
+    
+    .instagram-icon {
+        width: 40px;
+        height: 40px;
+        filter: grayscale(100%);
+    }
+    .hover {
+      list-style: none; /* Opcional: elimina los puntos de la lista */
+      text-decoration: none !important;
+    }
+    
+    .hover a {
+      text-decoration: none !important;
+      color: inherit;
+    }
+    
+    .hover:hover, .hover a:focus {
+      background-color: rgb(0, 0, 0);
+      text-decoration: none !important;
+      color: white;
+
+    }

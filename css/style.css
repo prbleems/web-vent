@@ -1,0 +1,80 @@
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.input {
+  max-width: 300px;
+  border: none;
+  font-family: "Courier New", Courier, monospace;
+  outline: none;
+  background: none;
+  font-size: 18px;
+  color: #555;
+  padding: 15px 5px 10px 20px;
+  box-shadow: inset 1px 1px 13px #cbced1,
+              inset -8px -8px 8px #ffffff;
+  margin-bottom: 10px;
+}
+
+.input::placeholder {
+  color: #555;
+  transition: all 0.3s ease;
+}
+
+.input:focus::placeholder {
+  color: #999;
+}
+
+.boton-instagram {
+  background-color: #000;
+  font-family: "Courier New", Courier, monospace;
+  color: #fff;
+  padding: 13px 10px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.boton-instagram:hover {
+  background-color: #444;
+  transform: scale(1.05);
+}
+
+.submit-button {
+  background-color: #000;
+  color: #fff;
+  font-family: "Courier New", Courier, monospace;
+  padding: 10px 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.3s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.submit-button:hover {
+  background-color: #444;
+  transform: translateY(-2px);
+}
+
+#error-message {
+  color: black;
+  display: none;
+  margin-top: 15px;
+  text-align: center;
+}

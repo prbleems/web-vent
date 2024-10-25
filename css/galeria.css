@@ -1,0 +1,78 @@
+.centered-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+.card-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Espacio entre las tarjetas */
+    margin-top: 20px; /* Espacio entre el GIF y las tarjetas */
+}
+
+.card {
+    width: 200px; /* Ajusta el tamaño de las tarjetas */
+    overflow: hidden;
+    background-color: #fff;
+    cursor: pointer; /* Cambia el cursor para indicar que es clickeable */
+}
+
+.card-img {
+    width: 100%;
+    height: auto;
+}
+
+.modal-dialog {
+    max-width: 800px;
+    max-height: 90%;
+}
+
+.modal-body {
+    font-family: "Courier New", Courier, monospace;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2rem;
+}
+
+.modal-body img {
+    max-width: 65%;
+    max-height: 100vh;
+    object-fit: contain;
+    margin-right: 1rem;
+}
+
+.modal-body .text-container {
+    flex: 1;
+}
+
+.modal-body h5 {
+    font-size: 1.5rem;
+    font-family: "Courier New", Courier, monospace;
+    margin-bottom: 1rem;
+}
+
+.modal-body p {
+    margin-bottom: 1.5rem;
+}
+
+.modal-body .btn {
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 1rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.Texto {
+    font-family: "Courier New", Courier, monospace;
+}
