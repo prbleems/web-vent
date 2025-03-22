@@ -1,3 +1,4 @@
+/* Contenedor centrado */
 .centered-container {
     display: flex;
     flex-direction: column;
@@ -6,11 +7,13 @@
     height: 100vh;
 }
 
+/* Imágenes responsivas */
 .img-fluid {
     max-width: 100%;
     height: auto;
 }
 
+/* Contenedor de tarjetas */
 .card-container {
     display: flex;
     justify-content: center;
@@ -18,21 +21,33 @@
     margin-top: 20px; /* Espacio entre el GIF y las tarjetas */
 }
 
+/* Estilos de tarjetas */
 .card {
-    width: 200px; /* Ajusta el tamaño de las tarjetas */
+    width: 200px; /* Ancho fijo para las tarjetas */
     overflow: hidden;
     background-color: #fff;
-    cursor: pointer; /* Cambia el cursor para indicar que es clickeable */
+    cursor: pointer; /* Indica que es clickeable */
+    border-radius: 8px; /* Bordes redondeados */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transición suave */
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Efecto de elevación al pasar el mouse */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
 }
 
 .card-img {
     width: 100%;
     height: auto;
+    display: block; /* Elimina espacio extra debajo de la imagen */
 }
 
+/* Estilos del modal */
 .modal-dialog {
     max-width: 800px;
     max-height: 90%;
+    margin: 1.75rem auto;
 }
 
 .modal-body {
@@ -45,34 +60,46 @@
 
 .modal-body img {
     max-width: 65%;
-    max-height: 100vh;
+    max-height: 80vh; /* Limita la altura de la imagen */
     object-fit: contain;
     margin-right: 1rem;
+    border-radius: 8px; /* Bordes redondeados para la imagen */
 }
 
 .modal-body .text-container {
     flex: 1;
+    padding-left: 1rem; /* Espaciado interno */
 }
 
 .modal-body h5 {
     font-size: 1.5rem;
-    font-family: "Courier New", Courier, monospace;
     margin-bottom: 1rem;
+    color: #333; /* Color de texto oscuro */
 }
 
 .modal-body p {
     margin-bottom: 1.5rem;
+    color: #555; /* Color de texto gris */
+    line-height: 1.6; /* Mejor legibilidad */
 }
 
 .modal-body .btn {
     background-color: #333;
     color: #fff;
     border: none;
-    padding: 1rem 1rem;
+    padding: 0.75rem 1.5rem;
     font-size: 1rem;
     cursor: pointer;
+    border-radius: 4px; /* Bordes redondeados */
+    transition: background-color 0.3s ease; /* Transición suave */
 }
 
+.modal-body .btn:hover {
+    background-color: #555; /* Cambio de color al pasar el mouse */
+}
+
+/* Clase para textos con fuente Courier */
 .Texto {
     font-family: "Courier New", Courier, monospace;
+    color: #333; /* Color de texto oscuro */
 }
