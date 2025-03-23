@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>Carrito de Compras</h1>
+    <div id="carrito">
+        <!-- Productos agregados al carrito -->
+    </div>
+    <form action="{{ url_for('pago') }}" method="POST">
+        <button type="submit">Pagar con PAYKU</button>
+    </form>
+</body>
+</html>

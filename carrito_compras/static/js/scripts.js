@@ -12,7 +12,7 @@ document.getElementById("loginForm").addEventListener("submit", function (event)
     // Verificar las credenciales
     if (usuarioInput === storedUser && passwordInput === storedPassword) {
         // Redirigir si las credenciales son correctas
-        window.location.href = "pages/inicio.html";
+        window.location.href = "inicio.html";
     } else {
         // Mostrar mensaje de error si son incorrectas
         const errorMessage = document.getElementById("error-message");
