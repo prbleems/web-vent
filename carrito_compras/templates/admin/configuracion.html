@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Secciones - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+    <style>
+        .config-section {
+            background: #fff;
+            border: 2px solid #000;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .config-title {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+        }
+        input:checked + .slider {
+            background-color: #000;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .slider.round {
+            border-radius: 34px;
+        }
+        .slider.round:before {
+            border-radius: 50%;
+        }
+        .mensaje-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #000;
+            font-family: 'Courier New', Courier, monospace;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .btn-guardar {
+            background: #000;
+            color: #fff;
+            border: 2px solid #000;
+            padding: 0.5rem 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        .btn-guardar:hover {
+            background: #fff;
+            color: #000;
+        }
+    </style>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Configuración de Secciones</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_index') }}" class="btn-admin">← Panel Principal</a>
+            </div>
+        </header>
+
+        <div class="admin-section">
+            <p style="margin-bottom: 2rem; font-family: 'Courier New', Courier, monospace; color: #666;">
+                Gestiona el estado de las secciones del sitio. Puedes habilitar o deshabilitar secciones y personalizar el mensaje que se mostrará cuando estén cerradas.
+            </p>
+
+            {% for seccion in secciones %}
+            <div class="config-section">
+                <div class="config-header">
+                    <h3 class="config-title">{{ seccion.seccion|upper }}</h3>
+                    <label class="toggle-switch">
+                        <input type="checkbox" 
+                               id="toggle-{{ seccion.seccion }}" 
+                               {% if seccion.habilitada %}checked{% endif %}
+                               onchange="actualizarSeccion('{{ seccion.seccion }}')">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div>
+                    <label style="font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">
+                        Mensaje cuando está cerrada:
+                    </label>
+                    <input type="text" 
+                           id="mensaje-{{ seccion.seccion }}" 
+                           class="mensaje-input"
+                           value="{{ seccion.mensaje or 'SECCIÓN CERRADA' }}"
+                           placeholder="Ej: TIENDA CERRADA">
+                    <button type="button" 
+                            class="btn-guardar" 
+                            onclick="guardarMensaje('{{ seccion.seccion }}')"
+                            style="margin-top: 0.5rem;">
+                        Guardar Mensaje
+                    </button>
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 0.85rem; color: #666; font-family: 'Courier New', Courier, monospace;">
+                    Estado: <strong>{% if seccion.habilitada %}HABILITADA{% else %}CERRADA{% endif %}</strong>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function actualizarSeccion(seccion) {
+            const checkbox = document.getElementById('toggle-' + seccion);
+            const habilitada = checkbox.checked ? 1 : 0;
+            const mensaje = document.getElementById('mensaje-' + seccion).value || 'SECCIÓN CERRADA';
+            
+            fetch('/admin/configuracion/actualizar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    seccion: seccion,
+                    habilitada: habilitada,
+                    mensaje: mensaje
+                })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(result) {
+                if (result.success) {
+                    if (typeof notificarExito === 'function') {
+                        notificarExito('Configuración actualizada correctamente');
+                    } else {
+                        alert('Configuración actualizada correctamente');
+                    }
+                    // Recargar después de un momento
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    if (typeof notificarError === 'function') {
+                        notificarError('Error al actualizar la configuración');
+                    } else {
+                        alert('Error al actualizar la configuración');
+                    }
+                    // Revertir el checkbox
+                    checkbox.checked = !checkbox.checked;
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                if (typeof notificarError === 'function') {
+                    notificarError('Error al actualizar la configuración');
+                } else {
+                    alert('Error al actualizar la configuración');
+                }
+                // Revertir el checkbox
+                checkbox.checked = !checkbox.checked;
+            });
+        }
+        
+        function guardarMensaje(seccion) {
+            const mensaje = document.getElementById('mensaje-' + seccion).value || 'SECCIÓN CERRADA';
+            const checkbox = document.getElementById('toggle-' + seccion);
+            const habilitada = checkbox.checked ? 1 : 0;
+            
+            fetch('/admin/configuracion/actualizar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    seccion: seccion,
+                    habilitada: habilitada,
+                    mensaje: mensaje
+                })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(result) {
+                if (result.success) {
+                    if (typeof notificarExito === 'function') {
+                        notificarExito('Mensaje guardado correctamente');
+                    } else {
+                        alert('Mensaje guardado correctamente');
+                    }
+                } else {
+                    if (typeof notificarError === 'function') {
+                        notificarError('Error al guardar el mensaje');
+                    } else {
+                        alert('Error al guardar el mensaje');
+                    }
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                if (typeof notificarError === 'function') {
+                    notificarError('Error al guardar el mensaje');
+                } else {
+                    alert('Error al guardar el mensaje');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

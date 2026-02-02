@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Pedidos - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-layout.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        .mis-pedidos-container {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 2rem;
+            font-family: "Courier New", Courier, monospace;
+        }
+        .buscar-pedido-form {
+            background-color: #fff;
+            padding: 2rem;
+            border: 2px solid #000;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #000;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .btn-buscar {
+            background-color: #000;
+            color: #fff;
+            border: 2px solid #000;
+            padding: 0.8rem 2rem;
+            font-family: "Courier New", Courier, monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .btn-buscar:hover {
+            background-color: #fff;
+            color: #000;
+        }
+        .pedido-resultado {
+            background-color: #fff;
+            padding: 2rem;
+            border: 2px solid #000;
+            margin-top: 2rem;
+        }
+        .pedido-header {
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .pedido-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .pedido-info-item {
+            font-size: 0.9rem;
+        }
+        .pedido-info-item strong {
+            display: block;
+            margin-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .pedido-items {
+            margin-top: 1.5rem;
+        }
+        .pedido-items table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .pedido-items th,
+        .pedido-items td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .pedido-items th {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+        .pedido-total {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 2px solid #000;
+            text-align: right;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .badge-estado {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .badge-estado.pendiente {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .badge-estado.procesando {
+            background-color: #17a2b8;
+            color: #fff;
+        }
+        .badge-estado.enviado {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .badge-estado.completado {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .badge-estado.cancelado {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .error-message {
+            color: #dc3545;
+            padding: 1rem;
+            background-color: #f8d7da;
+            border: 1px solid #dc3545;
+            margin-top: 1rem;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: #000;
+            text-decoration: none;
+            font-size: 0.9rem;
+            text-transform: lowercase;
+            letter-spacing: 1px;
+            padding: 0.5rem 1rem;
+            border: 1px solid #000;
+            transition: all 0.3s;
+        }
+        .back-link:hover {
+            background-color: #000;
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="vent-layout">
+    <div class="mis-pedidos-container">
+        <a href="{{ url_for('index') }}" class="back-link">← Volver</a>
+        
+        <h1 style="font-family: 'Courier New', Courier, monospace; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 2rem;">Mis Pedidos</h1>
+        
+        <div class="buscar-pedido-form">
+            <form id="buscar-pedido-form">
+                <div class="form-group">
+                    <label for="numero_pedido">Número de Pedido</label>
+                    <input type="text" id="numero_pedido" name="numero_pedido" placeholder="VENT-20260101-XXXXXXXX">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="tu@email.com">
+                </div>
+                <button type="submit" class="btn-buscar">Buscar Pedido</button>
+            </form>
+            <div id="error-message" class="error-message" style="display: none;"></div>
+        </div>
+        
+        <div id="pedido-resultado" style="display: none;"></div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+    <script>
+        document.getElementById('buscar-pedido-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const numeroPedido = document.getElementById('numero_pedido').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const errorDiv = document.getElementById('error-message');
+            const resultadoDiv = document.getElementById('pedido-resultado');
+            
+            if (!numeroPedido && !email) {
+                errorDiv.textContent = 'Por favor ingresa el número de pedido o tu email';
+                errorDiv.style.display = 'block';
+                resultadoDiv.style.display = 'none';
+                return;
+            }
+            
+            errorDiv.style.display = 'none';
+            
+            fetch('/api/buscar_pedido', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    numero_pedido: numeroPedido,
+                    email: email
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarPedido(data.pedido);
+                } else {
+                    errorDiv.textContent = data.error || 'Error al buscar el pedido';
+                    errorDiv.style.display = 'block';
+                    resultadoDiv.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorDiv.textContent = 'Error al buscar el pedido. Por favor intenta nuevamente.';
+                errorDiv.style.display = 'block';
+                resultadoDiv.style.display = 'none';
+            });
+        });
+        
+        function mostrarPedido(pedido) {
+            const resultadoDiv = document.getElementById('pedido-resultado');
+            const estadoClass = pedido.estado || 'pendiente';
+            
+            let itemsHTML = '';
+            if (pedido.items && pedido.items.length > 0) {
+                itemsHTML = '<table><thead><tr><th>Producto</th><th>Talla</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>';
+                pedido.items.forEach(item => {
+                    itemsHTML += `<tr>
+                        <td>${item.producto_nombre || 'N/A'}</td>
+                        <td>${item.talla || 'N/A'}</td>
+                        <td>${item.cantidad || 0}</td>
+                        <td>$${parseFloat(item.precio || 0).toLocaleString('es-CL')}</td>
+                        <td>$${(parseFloat(item.precio || 0) * parseFloat(item.cantidad || 0)).toLocaleString('es-CL')}</td>
+                    </tr>`;
+                });
+                itemsHTML += '</tbody></table>';
+            }
+            
+            resultadoDiv.innerHTML = `
+                <div class="pedido-resultado">
+                    <div class="pedido-header">
+                        <h2>Pedido #${pedido.numero_pedido || pedido.id}</h2>
+                        <span class="badge-estado ${estadoClass}">${pedido.estado || 'Pendiente'}</span>
+                    </div>
+                    <div class="pedido-info">
+                        <div class="pedido-info-item">
+                            <strong>Cliente:</strong>
+                            ${pedido.usuario_nombre || 'N/A'}
+                        </div>
+                        <div class="pedido-info-item">
+                            <strong>Email:</strong>
+                            ${pedido.usuario_email || 'N/A'}
+                        </div>
+                        <div class="pedido-info-item">
+                            <strong>Teléfono:</strong>
+                            ${pedido.usuario_telefono || 'N/A'}
+                        </div>
+                        <div class="pedido-info-item">
+                            <strong>Fecha:</strong>
+                            ${pedido.fecha || 'N/A'}
+                        </div>
+                        <div class="pedido-info-item">
+                            <strong>Método de Pago:</strong>
+                            ${pedido.metodo_pago ? pedido.metodo_pago.toUpperCase() : 'N/A'}
+                        </div>
+                        <div class="pedido-info-item">
+                            <strong>Tipo de Entrega:</strong>
+                            ${pedido.tipo_envio === 'retiro' ? 'RETIRO EN TIENDA' : pedido.tipo_envio === 'envio' ? 'ENVÍO A DOMICILIO' : 'N/A'}
+                        </div>
+                        ${pedido.tipo_envio === 'envio' && pedido.direccion ? `
+                        <div class="pedido-info-item">
+                            <strong>Dirección:</strong>
+                            ${pedido.direccion || ''}${pedido.comuna ? ', ' + pedido.comuna : ''}${pedido.region ? ', ' + pedido.region : ''}
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="pedido-items">
+                        <h3>Items del Pedido</h3>
+                        ${itemsHTML}
+                    </div>
+                    <div class="pedido-total">
+                        ${pedido.subtotal ? `<div style="margin-bottom: 0.5rem;">Subtotal: $${parseFloat(pedido.subtotal).toLocaleString('es-CL')}</div>` : ''}
+                        ${pedido.descuento && pedido.descuento > 0 ? `<div style="margin-bottom: 0.5rem; color: #28a745;">Descuento: -$${parseFloat(pedido.descuento).toLocaleString('es-CL')}</div>` : ''}
+                        ${pedido.costo_envio && pedido.costo_envio > 0 ? `<div style="margin-bottom: 0.5rem;">Envío: $${parseFloat(pedido.costo_envio).toLocaleString('es-CL')}</div>` : ''}
+                        <div>Total: $${parseFloat(pedido.total || 0).toLocaleString('es-CL')}</div>
+                    </div>
+                </div>
+            `;
+            resultadoDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

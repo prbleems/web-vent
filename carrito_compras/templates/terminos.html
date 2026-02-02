@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos y Condiciones - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-page.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+</head>
+<body class="vent-page">
+    <div class="vent-page-container">
+        <h1 class="vent-section-title">términos y condiciones</h1>
+        
+        <!-- Logo VENT 3D -->
+        <div class="vent-logo-container" style="text-align: center; margin-bottom: 1rem; margin-top: 1rem;">
+            <a href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='img/vent3d.gif') }}" alt="VENT" style="max-width: 200px; width: auto; height: auto; display: block; margin: 0 auto;">
+            </a>
+        </div>
+        
+        <div class="vent-page-content">
+            <div class="vent-policy-section">
+                <h3 class="vent-policy-title">1. aceptación de términos</h3>
+                <p class="vent-policy-text">
+                    Al acceder y utilizar este sitio web, aceptas estar sujeto a estos términos y condiciones. Si no estás de acuerdo con alguna parte de estos términos, no debes utilizar nuestro sitio.
+                </p>
+
+                <h3 class="vent-policy-title">2. productos y precios</h3>
+                <p class="vent-policy-text">
+                    Nos reservamos el derecho de modificar precios, productos y disponibilidad en cualquier momento sin previo aviso. Todos los precios están expresados en pesos chilenos (CLP) e incluyen impuestos aplicables.
+                </p>
+
+                <h3 class="vent-policy-title">3. pedidos y pagos</h3>
+                <p class="vent-policy-text">
+                    Al realizar un pedido, aceptas proporcionar información precisa y completa. Los pagos se procesan de forma segura a través de Transbank (Webpay Plus) y Mercado Pago. Una vez confirmado el pago, recibirás un número de pedido único.
+                </p>
+
+                <h3 class="vent-policy-title">4. política de devoluciones</h3>
+                <p class="vent-policy-text">
+                    <strong>Todas las ventas son finales.</strong> No ofrecemos devoluciones ni cambios debido al bajo costo de los productos. Por favor, revisa tu pedido cuidadosamente antes de completar tu compra.
+                </p>
+                <p class="vent-policy-text">
+                    Si un artículo es incorrecto o defectuoso, contáctanos en <a href="mailto:contact@vent.cl">contact@vent.cl</a> con tu número de pedido y una descripción del problema. Nos haremos responsables y resolveremos el problema rápidamente.
+                </p>
+
+                <h3 class="vent-policy-title">5. envíos</h3>
+                <p class="vent-policy-text">
+                    Ofrecemos dos opciones de entrega:
+                </p>
+                <ul class="vent-policy-list">
+                    <li><strong>Retiro en tienda:</strong> Gratis</li>
+                    <li><strong>Envío a domicilio:</strong> Costo fijo de $5.000 CLP</li>
+                </ul>
+                <p class="vent-policy-text">
+                    Los tiempos de entrega pueden variar según la ubicación. No nos hacemos responsables por retrasos causados por empresas de envío o circunstancias fuera de nuestro control.
+                </p>
+
+                <h3 class="vent-policy-title">6. propiedad intelectual</h3>
+                <p class="vent-policy-text">
+                    Todo el contenido de este sitio web, incluyendo textos, imágenes, logos y diseño, es propiedad de VENT y está protegido por las leyes de propiedad intelectual de Chile.
+                </p>
+
+                <h3 class="vent-policy-title">7. limitación de responsabilidad</h3>
+                <p class="vent-policy-text">
+                    VENT no será responsable por daños indirectos, incidentales o consecuentes que puedan resultar del uso o imposibilidad de uso de este sitio web o de los productos adquiridos.
+                </p>
+
+                <h3 class="vent-policy-title">8. protección de datos</h3>
+                <p class="vent-policy-text">
+                    El tratamiento de tus datos personales se rige por nuestra Política de Privacidad, la cual cumple con la Ley 19.628 sobre Protección de Datos Personales de Chile.
+                </p>
+
+                <h3 class="vent-policy-title">9. ley aplicable</h3>
+                <p class="vent-policy-text">
+                    Estos términos y condiciones se rigen por las leyes de la República de Chile. Cualquier disputa será resuelta en los tribunales competentes de Chile.
+                </p>
+
+                <h3 class="vent-policy-title">10. contacto</h3>
+                <p class="vent-policy-text">
+                    Para consultas sobre estos términos y condiciones:
+                </p>
+                <p class="vent-policy-text">
+                    Email: <a href="mailto:contact@vent.cl">contact@vent.cl</a>
+                </p>
+            </div>
+        </div>
+        
+        <a href="{{ url_for('index') }}" class="vent-back-link">← volver</a>
+    </div>
+</body>
+</html>

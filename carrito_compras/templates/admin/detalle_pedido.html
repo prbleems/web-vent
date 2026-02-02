@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Pedido #{{ pedido.id }} - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Detalle de Pedido #{{ pedido.id }}</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_pedidos') }}" class="btn-admin">← Volver a Pedidos</a>
+            </div>
+        </header>
+
+        <div class="admin-section">
+            <div class="order-info">
+                <h2>Información del Pedido</h2>
+                <p><strong>Número de Pedido:</strong> <span style="font-weight: bold; font-size: 1.1em;">{{ pedido.numero_pedido or 'N/A' }}</span></p>
+                <p><strong>ID Interno:</strong> #{{ pedido.id }}</p>
+                <h2>Información del Cliente</h2>
+                <p><strong>Nombre:</strong> {{ pedido.usuario_nombre or 'N/A' }}</p>
+                <p><strong>Email:</strong> {{ pedido.usuario_email or 'N/A' }}</p>
+                {% if pedido.usuario_telefono %}
+                <p><strong>Teléfono:</strong> {{ pedido.usuario_telefono }}</p>
+                {% endif %}
+                <p><strong>Fecha:</strong> {{ pedido.fecha }}</p>
+                <p><strong>Estado:</strong> 
+                    <span class="badge badge-{{ pedido.estado }}">{{ pedido.estado }}</span>
+                </p>
+                {% if pedido.metodo_pago %}
+                <p><strong>Método de Pago:</strong> {{ pedido.metodo_pago|upper }}</p>
+                {% endif %}
+                
+                <h2>Información de Entrega</h2>
+                {% if pedido.tipo_envio %}
+                    {% if pedido.tipo_envio == 'retiro' %}
+                        <p><strong>Tipo de Entrega:</strong> <span style="font-weight: bold; color: #28a745;">RETIRO EN TIENDA (GRATIS)</span></p>
+                    {% elif pedido.tipo_envio == 'envio' %}
+                        <p><strong>Tipo de Entrega:</strong> <span style="font-weight: bold;">ENVÍO A DOMICILIO</span></p>
+                        {% if pedido.direccion %}
+                        <p><strong>Dirección:</strong> {{ pedido.direccion }}</p>
+                        {% endif %}
+                        {% if pedido.comuna %}
+                        <p><strong>Comuna:</strong> {{ pedido.comuna }}</p>
+                        {% endif %}
+                        {% if pedido.region %}
+                        <p><strong>Región:</strong> {{ pedido.region }}</p>
+                        {% endif %}
+                        {% if pedido.costo_envio %}
+                        <p><strong>Costo de Envío:</strong> {{ pedido.costo_envio|formato_precio_clp }}</p>
+                        {% endif %}
+                    {% else %}
+                        <p><strong>Tipo de Entrega:</strong> {{ pedido.tipo_envio|upper }}</p>
+                    {% endif %}
+                {% else %}
+                    <p><strong>Tipo de Entrega:</strong> No especificado</p>
+                {% endif %}
+            </div>
+
+            <div class="order-items">
+                <h2>Items del Pedido</h2>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Talla</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.producto_nombre }}</td>
+                            <td>{{ item.talla or 'N/A' }}</td>
+                            <td>{{ item.cantidad }}</td>
+                            <td>{{ item.precio|formato_precio_clp }}</td>
+                            <td>{{ (item.precio * item.cantidad)|formato_precio_clp }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" style="text-align: right;"><strong>Subtotal:</strong></td>
+                            <td><strong>{{ pedido.subtotal|formato_precio_clp }}</strong></td>
+                        </tr>
+                        {% if pedido.descuento and pedido.descuento > 0 %}
+                        <tr>
+                            <td colspan="4" style="text-align: right; color: #28a745;"><strong>Descuento{% if pedido.codigo_cupon %} ({{ pedido.codigo_cupon }}){% endif %}:</strong></td>
+                            <td style="color: #28a745;"><strong>-{{ pedido.descuento|formato_precio_clp }}</strong></td>
+                        </tr>
+                        {% endif %}
+                        {% if pedido.costo_envio and pedido.costo_envio > 0 %}
+                        <tr>
+                            <td colspan="4" style="text-align: right;"><strong>Envío:</strong></td>
+                            <td><strong>{{ pedido.costo_envio|formato_precio_clp }}</strong></td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td colspan="4" style="text-align: right;"><strong>Total:</strong></td>
+                            <td><strong>{{ pedido.total|formato_precio_clp }}</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="order-actions">
+                <h2>Cambiar Estado</h2>
+                <select id="estado-select" onchange="cambiarEstado({{ pedido.id }})">
+                    <option value="pendiente" {% if pedido.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="procesando" {% if pedido.estado == 'procesando' %}selected{% endif %}>Procesando</option>
+                    <option value="enviado" {% if pedido.estado == 'enviado' %}selected{% endif %}>Enviado</option>
+                    <option value="completado" {% if pedido.estado == 'completado' %}selected{% endif %}>Completado</option>
+                    <option value="cancelado" {% if pedido.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function cambiarEstado(pedidoId) {
+            const nuevoEstado = document.getElementById('estado-select').value;
+            
+            fetch(`/admin/pedidos/${pedidoId}/estado`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ estado: nuevoEstado })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof notificarExito === 'function') {
+                        notificarExito('Estado del pedido actualizado');
+                    }
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    if (typeof notificarError === 'function') {
+                        notificarError('Error al cambiar el estado del pedido');
+                    } else {
+                        alert('Error al cambiar el estado del pedido');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (typeof notificarError === 'function') {
+                    notificarError('Error al cambiar el estado del pedido');
+                } else {
+                    alert('Error al cambiar el estado del pedido');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

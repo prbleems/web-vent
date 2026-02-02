@@ -1,0 +1,448 @@
+/* Panel de Administración VENT - Estilo Minimalista */
+
+.admin-body {
+    background-color: #fff;
+    color: #000;
+    font-family: "Courier New", Courier, monospace;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #000;
+}
+
+.admin-header h1 {
+    font-size: 2rem;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+.admin-nav {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-admin,
+.btn-primary,
+.btn-secondary,
+.btn-small,
+.btn-danger {
+    padding: 0.6rem 1.5rem;
+    border: 2px solid #000;
+    background-color: #fff;
+    color: #000;
+    text-decoration: none;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+    text-transform: lowercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #000;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+.btn-secondary {
+    background-color: #fff;
+    color: #000;
+}
+
+.btn-secondary:hover {
+    background-color: #000;
+    color: #fff;
+}
+
+.btn-small {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+}
+
+.btn-danger {
+    background-color: #fff;
+    color: #d32f2f;
+    border-color: #d32f2f;
+}
+
+.btn-danger:hover {
+    background-color: #d32f2f;
+    color: #fff;
+}
+
+/* Estadísticas */
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    border: 2px solid #000;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 5px 5px 0 #000;
+}
+
+.stat-card h3 {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 1rem 0;
+    font-weight: normal;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: bold;
+    margin: 1rem 0;
+}
+
+.stat-link {
+    color: #000;
+    text-decoration: none;
+    text-transform: lowercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #000;
+    transition: all 0.3s;
+}
+
+.stat-link:hover {
+    background-color: #000;
+    color: #fff;
+    padding: 0.2rem 0.5rem;
+}
+
+/* Secciones */
+.admin-section {
+    margin-bottom: 3rem;
+}
+
+.admin-section h2 {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    font-weight: normal;
+}
+
+/* Tablas */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid #000;
+}
+
+.admin-table thead {
+    background-color: #000;
+    color: #fff;
+}
+
+.admin-table th {
+    padding: 1rem;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+    font-weight: normal;
+}
+
+.admin-table td {
+    padding: 1rem;
+    border-top: 1px solid #000;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.table-image {
+    max-width: 80px;
+    height: auto;
+    border: 1px solid #000;
+}
+
+/* Badges */
+.badge {
+    padding: 0.3rem 0.8rem;
+    border: 1px solid #000;
+    text-transform: lowercase;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+.badge-pendiente {
+    background-color: #fff3cd;
+    color: #000;
+}
+
+.badge-procesando {
+    background-color: #cfe2ff;
+    color: #000;
+}
+
+.badge-enviado {
+    background-color: #d1e7dd;
+    color: #000;
+}
+
+.badge-completado {
+    background-color: #d1e7dd;
+    color: #000;
+}
+
+.badge-cancelado {
+    background-color: #f8d7da;
+    color: #000;
+}
+
+.badge-activo {
+    background-color: #d1e7dd;
+    color: #000;
+}
+
+.badge-inactivo {
+    background-color: #f8d7da;
+    color: #000;
+}
+
+/* Formularios */
+.admin-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.admin-form {
+    border: 2px solid #000;
+    padding: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="file"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid #000;
+    background-color: #fff;
+    color: #000;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.form-group input[type="file"] {
+    padding: 0.5rem;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.current-image {
+    margin-bottom: 1rem;
+}
+
+.current-image p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Galería Grid */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.gallery-item {
+    border: 2px solid #000;
+    overflow: hidden;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    display: block;
+}
+
+.gallery-item-info {
+    padding: 1.5rem;
+}
+
+.gallery-item-info h3 {
+    font-size: 1.2rem;
+    margin: 0 0 1rem 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.gallery-item-info p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.gallery-item-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+/* Información de pedido */
+.order-info,
+.order-items,
+.order-actions {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 2px solid #000;
+}
+
+.order-info h2,
+.order-items h2,
+.order-actions h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.order-info p {
+    margin: 0.5rem 0;
+}
+
+.order-actions select {
+    padding: 0.8rem;
+    border: 2px solid #000;
+    background-color: #fff;
+    color: #000;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* Acciones rápidas */
+.admin-quick-actions {
+    margin-top: 3rem;
+    padding: 2rem;
+    border: 2px solid #000;
+}
+
+.admin-quick-actions h2 {
+    margin-bottom: 1.5rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 1rem;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .admin-nav {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .admin-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-table {
+        font-size: 0.85rem;
+    }
+
+    .admin-table th,
+    .admin-table td {
+        padding: 0.5rem;
+    }
+
+    .gallery-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .action-buttons .btn-primary {
+        width: 100%;
+        text-align: center;
+    }
+}

@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ producto.nombre }} - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-shop.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        .vent-product-detail {
+            background-color: #fff;
+            color: #000;
+            min-height: 100vh;
+            padding: 4rem 2rem;
+            font-family: "Courier New", Courier, monospace;
+        }
+        
+        .vent-product-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 3rem;
+            align-items: start;
+            padding: 2rem 0;
+        }
+        
+        .vent-product-image-container {
+            position: relative;
+            background-color: #fff;
+        }
+        
+        .vent-product-main-image {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            background-color: #fff;
+            display: block;
+            cursor: zoom-in;
+            transition: transform 0.2s;
+        }
+        
+        .vent-product-main-image:hover {
+            transform: scale(1.02);
+        }
+        
+        .vent-product-info {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 500px;
+        }
+        
+        .vent-product-title {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.3rem;
+            font-weight: normal;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #000;
+            margin: 0 0 1.5rem 0;
+            line-height: 1.4;
+        }
+        
+        .vent-product-description {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: #000;
+            margin: 0 0 2rem 0;
+            text-transform: lowercase;
+        }
+        
+        .vent-product-price {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.1rem;
+            color: #000;
+            margin: 0 0 2.5rem 0;
+            font-weight: normal;
+        }
+        
+        .vent-add-to-cart-btn {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.95rem;
+            color: #fff;
+            background-color: #000;
+            border: 2px solid #000;
+            padding: 1rem 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 350px;
+            margin-bottom: 3rem;
+        }
+        
+        .vent-add-to-cart-btn:hover {
+            background-color: #fff;
+            color: #000;
+        }
+        
+        .vent-product-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 2rem;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .vent-product-nav-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .vent-product-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .vent-back-btn {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.85rem;
+            color: #fff;
+            background-color: #000;
+            border: 1px solid #000;
+            padding: 0.7rem 1.5rem;
+            text-transform: lowercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        
+        .vent-back-btn:hover {
+            background-color: #fff;
+            color: #000;
+        }
+        
+        .vent-nav-counter {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.85rem;
+            color: #000;
+            text-transform: lowercase;
+        }
+        
+        .vent-nav-arrow {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.85rem;
+            color: #000;
+            text-decoration: none;
+            margin-left: 0.5rem;
+        }
+        
+        .vent-nav-arrow:hover {
+            text-decoration: underline;
+        }
+        
+        /* Estilos para tallas - Compacto */
+        .vent-tallas-container {
+            margin-bottom: 2rem;
+        }
+        
+        .vent-tallas-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .vent-talla-option {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border: 2px solid #000;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: "Courier New", Courier, monospace;
+            position: relative;
+            background-color: #fff;
+        }
+        
+        .vent-talla-option input[type="radio"] {
+            display: none;
+        }
+        
+        .vent-talla-option:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .vent-talla-option:has(input[type="radio"]:checked) {
+            background-color: #000;
+            color: #fff;
+        }
+        
+        .vent-talla-option:has(input[type="radio"]:checked) .talla-label {
+            color: #fff;
+        }
+        
+        .vent-talla-option:has(input[type="radio"]:disabled),
+        .vent-talla-option.sin-stock {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #ccc;
+            position: relative;
+        }
+        
+        .vent-talla-option:has(input[type="radio"]:disabled)::after,
+        .vent-talla-option.sin-stock::after {
+            content: '✕';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            color: #ff0000;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .vent-talla-option:has(input[type="radio"]:disabled) .talla-label,
+        .vent-talla-option.sin-stock .talla-label {
+            opacity: 0.3;
+        }
+        
+        .talla-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: normal;
+            color: #000;
+            position: relative;
+            z-index: 0;
+        }
+        
+        .stock-badge {
+            display: none; /* Ocultar el badge de stock para diseño más limpio */
+        }
+        
+        .stock-message {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            color: #666;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        
+        /* Lightbox para imagen con zoom */
+        .vent-lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            cursor: zoom-out;
+            overflow: hidden;
+        }
+        
+        .vent-lightbox.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .vent-lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .vent-lightbox-image {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            transform-origin: center;
+            transition: transform 0.3s ease;
+            cursor: move;
+        }
+        
+        .vent-lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background-color: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            transition: all 0.3s;
+        }
+        
+        .vent-lightbox-close:hover {
+            background-color: #fff;
+            color: #000;
+        }
+        
+        .vent-lightbox-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10001;
+        }
+        
+        .vent-lightbox-btn {
+            background-color: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 10px 20px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        
+        .vent-lightbox-btn:hover {
+            background-color: #fff;
+            color: #000;
+        }
+        
+        .vent-zoom-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px 15px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 10001;
+        }
+        
+        @media (max-width: 968px) {
+            .vent-product-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .vent-product-nav {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+            
+            .vent-lightbox-close {
+                top: 10px;
+                right: 10px;
+                width: 35px;
+                height: 35px;
+                font-size: 20px;
+            }
+            
+            .vent-lightbox-controls {
+                bottom: 10px;
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .vent-lightbox-btn {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body class="vent-product-detail">
+    <div class="vent-product-container">
+        <!-- Imagen del producto -->
+        <div class="vent-product-image-container">
+            {% set img_src = url_for('static', filename=producto.imagen.replace('/static/', '')) if producto.imagen.startswith('/static/') else url_for('static', filename=producto.imagen) %}
+            <img src="{{ img_src }}" alt="{{ producto.nombre }}" class="vent-product-main-image" id="product-image" data-full-image="{{ img_src }}">
+        </div>
+        
+        <!-- Lightbox para imagen con zoom -->
+        <div class="vent-lightbox" id="image-lightbox">
+            <div class="vent-lightbox-close" id="lightbox-close">×</div>
+            <div class="vent-zoom-indicator" id="zoom-indicator">100%</div>
+            <div class="vent-lightbox-content">
+                <img src="{{ img_src }}" alt="{{ producto.nombre }}" class="vent-lightbox-image" id="lightbox-image">
+            </div>
+            <div class="vent-lightbox-controls">
+                <button class="vent-lightbox-btn" id="zoom-in-btn">+ Zoom</button>
+                <button class="vent-lightbox-btn" id="zoom-out-btn">- Zoom</button>
+                <button class="vent-lightbox-btn" id="reset-zoom-btn">Reset</button>
+            </div>
+        </div>
+        
+        <!-- Información del producto -->
+        <div class="vent-product-info">
+            <h1 class="vent-product-title">{{ producto.nombre }}</h1>
+            
+            <p class="vent-product-description">
+                {{ producto.descripcion or 'Producto de calidad de VENT. Diseño minimalista y atemporal.' }}
+            </p>
+            
+                <p class="vent-product-price">{{ producto.precio|formato_precio_clp }}</p>
+            
+            <!-- Selector de tallas -->
+            {% if tallas and tallas|length > 0 %}
+            <div class="vent-tallas-container" style="margin-bottom: 2rem;">
+                <label for="talla-select" style="display: block; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Talla *</label>
+                <div class="vent-tallas-grid" id="tallas-grid">
+                    {% for talla_item in tallas %}
+                    <label class="vent-talla-option {% if talla_item.stock == 0 %}sin-stock{% endif %}" data-talla="{{ talla_item.talla }}" data-stock="{{ talla_item.stock }}" title="{{ talla_item.stock }} disponibles">
+                        <input type="radio" name="talla" value="{{ talla_item.talla }}" required {% if talla_item.stock == 0 %}disabled{% endif %}>
+                        <span class="talla-label">{% if talla_item.talla == 'Talla Única' %}ÚNICA{% else %}{{ talla_item.talla }}{% endif %}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <p class="stock-message" id="stock-message" style="font-size: 0.85rem; margin-top: 0.5rem; color: #666; font-family: 'Courier New', Courier, monospace;"></p>
+            </div>
+            {% else %}
+            <input type="hidden" name="talla" value="Talla Única" id="talla-hidden">
+            {% endif %}
+            
+            <button class="vent-add-to-cart-btn" 
+                    id="btn-agregar-carrito"
+                    data-producto-id="{{ producto.id }}" 
+                    data-producto-nombre="{{ producto.nombre }}" 
+                    data-producto-precio="{{ producto.precio }}" 
+                    data-producto-imagen="{{ img_src }}">
+                agregar al carrito
+            </button>
+            
+            <!-- Navegación -->
+            <div class="vent-product-nav">
+                <div class="vent-product-nav-left">
+                    <a href="{{ url_for('tienda') }}" class="vent-back-btn">volver</a>
+                </div>
+                <div class="vent-product-nav-right">
+                    <span class="vent-nav-counter">{{ producto.id }} de {{ total_productos }}</span>
+                    {% if producto.id < total_productos %}
+                    <a href="{{ url_for('producto', id=producto.id + 1) }}" class="vent-nav-arrow">→</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Productos relacionados -->
+    {% if productos_relacionados and productos_relacionados|length > 0 %}
+    <div style="max-width: 1200px; margin: 4rem auto; padding: 0 2rem;">
+        <h2 style="font-family: 'Courier New', Courier, monospace; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 2rem; text-align: center;">Productos Relacionados</h2>
+        <div class="vent-product-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 2rem;">
+            {% for producto_rel in productos_relacionados %}
+            <a href="{{ url_for('producto', id=producto_rel.id) }}" class="vent-product-item" style="text-decoration: none; color: inherit;">
+                {% set img_src_rel = url_for('static', filename=producto_rel.imagen.replace('/static/', '')) if producto_rel.imagen.startswith('/static/') else url_for('static', filename=producto_rel.imagen) %}
+                <img src="{{ img_src_rel }}" 
+                     alt="{{ producto_rel.nombre }}" 
+                     class="vent-product-image">
+                <p class="vent-product-code">{{ producto_rel.nombre[:6].upper() }}-{{ "%02d"|format(producto_rel.id) }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/carrito-persistencia.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tienda.js') }}"></script>
+    <script>
+        // Función para actualizar stock en tiempo real con throttling
+        let lastStockUpdate = 0;
+        const STOCK_UPDATE_INTERVAL = 2000; // 2 segundos mínimo entre actualizaciones
+        
+        function actualizarStockTallas() {
+            const ahora = Date.now();
+            if (ahora - lastStockUpdate < STOCK_UPDATE_INTERVAL) {
+                return; // Evitar actualizaciones muy frecuentes
+            }
+            lastStockUpdate = ahora;
+            
+            const productoId = parseInt('{{ producto.id|default(0) }}');
+            
+            fetch(`/api/stock_tallas/${productoId}`)
+                .then(response => {
+                    // Verificar si la respuesta es JSON antes de parsear
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error('Respuesta no es JSON');
+                    }
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Actualizar estado de tallas (sin mostrar badge)
+                        Object.keys(data.stock).forEach(talla => {
+                            const stock = data.stock[talla];
+                            const option = document.querySelector(`.vent-talla-option[data-talla="${talla}"]`);
+                            
+                            if (option) {
+                                const radio = option.querySelector('input[type="radio"]');
+                                if (radio) {
+                                    // Actualizar tooltip con stock
+                                    option.title = `${stock} disponibles`;
+                                    
+                                    if (stock > 0) {
+                                        radio.disabled = false;
+                                        option.style.opacity = '1';
+                                        option.style.cursor = 'pointer';
+                                        option.style.borderColor = '#000';
+                                        option.classList.remove('sin-stock');
+                                    } else {
+                                        radio.disabled = true;
+                                        option.style.opacity = '0.5';
+                                        option.style.cursor = 'not-allowed';
+                                        option.style.borderColor = '#ccc';
+                                        option.title = 'Sin stock';
+                                        option.classList.add('sin-stock');
+                                        
+                                        // Si estaba seleccionada, deseleccionar
+                                        if (radio.checked) {
+                                            radio.checked = false;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                        
+                        // Actualizar mensaje de stock seleccionado
+                        const tallaSeleccionada = document.querySelector('input[name="talla"]:checked');
+                        if (tallaSeleccionada) {
+                            const stock = data.stock[tallaSeleccionada.value];
+                            const mensaje = document.getElementById('stock-message');
+                            if (mensaje) {
+                                if (stock > 0) {
+                                    mensaje.textContent = `Stock disponible: ${stock} unidades`;
+                                    mensaje.style.color = '#000';
+                                } else {
+                                    mensaje.textContent = 'Esta talla no tiene stock disponible';
+                                    mensaje.style.color = '#ff0000';
+                                }
+                            }
+                        }
+                    }
+                })
+                .catch(error => {
+                    // Solo mostrar error si no es un 429 (rate limit)
+                    if (!error.message.includes('429')) {
+                        console.error('Error al actualizar stock:', error);
+                    }
+                    // No hacer nada más, simplemente ignorar el error
+                });
+        }
+        
+        // Lightbox con zoom para imagen del producto
+        document.addEventListener('DOMContentLoaded', function() {
+            const productImage = document.getElementById('product-image');
+            const lightbox = document.getElementById('image-lightbox');
+            const lightboxImage = document.getElementById('lightbox-image');
+            const lightboxClose = document.getElementById('lightbox-close');
+            const zoomInBtn = document.getElementById('zoom-in-btn');
+            const zoomOutBtn = document.getElementById('zoom-out-btn');
+            const resetZoomBtn = document.getElementById('reset-zoom-btn');
+            const zoomIndicator = document.getElementById('zoom-indicator');
+            
+            let currentZoom = 1;
+            let isDragging = false;
+            let startX, startY, scrollLeft, scrollTop;
+            const minZoom = 0.5;
+            const maxZoom = 5;
+            const zoomStep = 0.25;
+            
+            // Abrir lightbox al hacer clic en la imagen
+            if (productImage) {
+                productImage.addEventListener('click', function() {
+                    lightbox.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    currentZoom = 1;
+                    updateZoom();
+                });
+            }
+            
+            // Cerrar lightbox
+            function closeLightbox() {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+                currentZoom = 1;
+                updateZoom();
+                resetImagePosition();
+            }
+            
+            if (lightboxClose) {
+                lightboxClose.addEventListener('click', closeLightbox);
+            }
+            
+            // Cerrar al hacer clic fuera de la imagen
+            lightbox.addEventListener('click', function(e) {
+                if (e.target === lightbox) {
+                    closeLightbox();
+                }
+            });
+            
+            // Cerrar con tecla ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+                    closeLightbox();
+                }
+            });
+            
+            // Funciones de zoom
+            function updateZoom() {
+                if (lightboxImage) {
+                    lightboxImage.style.transform = `scale(${currentZoom})`;
+                    if (zoomIndicator) {
+                        zoomIndicator.textContent = `${Math.round(currentZoom * 100)}%`;
+                    }
+                }
+            }
+            
+            function zoomIn() {
+                if (currentZoom < maxZoom) {
+                    currentZoom = Math.min(currentZoom + zoomStep, maxZoom);
+                    updateZoom();
+                }
+            }
+            
+            function zoomOut() {
+                if (currentZoom > minZoom) {
+                    currentZoom = Math.max(currentZoom - zoomStep, minZoom);
+                    updateZoom();
+                }
+            }
+            
+            function resetZoom() {
+                currentZoom = 1;
+                updateZoom();
+                resetImagePosition();
+            }
+            
+            function resetImagePosition() {
+                if (lightboxImage) {
+                    lightboxImage.style.transform = 'scale(1) translate(0, 0)';
+                }
+            }
+            
+            // Botones de zoom
+            if (zoomInBtn) {
+                zoomInBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    zoomIn();
+                });
+            }
+            
+            if (zoomOutBtn) {
+                zoomOutBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    zoomOut();
+                });
+            }
+            
+            if (resetZoomBtn) {
+                resetZoomBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    resetZoom();
+                });
+            }
+            
+            // Zoom con rueda del mouse
+            if (lightboxImage) {
+                lightboxImage.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    if (e.deltaY < 0) {
+                        zoomIn();
+                    } else {
+                        zoomOut();
+                    }
+                }, { passive: false });
+                
+                // Arrastrar imagen cuando está zoomed
+                lightboxImage.addEventListener('mousedown', function(e) {
+                    if (currentZoom > 1) {
+                        isDragging = true;
+                        startX = e.pageX - lightboxImage.offsetLeft;
+                        startY = e.pageY - lightboxImage.offsetTop;
+                        lightboxImage.style.cursor = 'grabbing';
+                    }
+                });
+                
+                document.addEventListener('mousemove', function(e) {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                    
+                    const x = e.pageX - startX;
+                    const y = e.pageY - startY;
+                    
+                    lightboxImage.style.transform = `scale(${currentZoom}) translate(${x / currentZoom}px, ${y / currentZoom}px)`;
+                });
+                
+                document.addEventListener('mouseup', function() {
+                    if (isDragging) {
+                        isDragging = false;
+                        lightboxImage.style.cursor = currentZoom > 1 ? 'grab' : 'move';
+                    }
+                });
+            }
+            
+            // Zoom con gestos táctiles (pinch)
+            let initialDistance = 0;
+            let initialZoom = 1;
+            
+            if (lightboxImage) {
+                lightboxImage.addEventListener('touchstart', function(e) {
+                    if (e.touches.length === 2) {
+                        e.preventDefault();
+                        const touch1 = e.touches[0];
+                        const touch2 = e.touches[1];
+                        initialDistance = Math.hypot(
+                            touch2.clientX - touch1.clientX,
+                            touch2.clientY - touch1.clientY
+                        );
+                        initialZoom = currentZoom;
+                    }
+                }, { passive: false });
+                
+                lightboxImage.addEventListener('touchmove', function(e) {
+                    if (e.touches.length === 2) {
+                        e.preventDefault();
+                        const touch1 = e.touches[0];
+                        const touch2 = e.touches[1];
+                        const currentDistance = Math.hypot(
+                            touch2.clientX - touch1.clientX,
+                            touch2.clientY - touch1.clientY
+                        );
+                        
+                        const zoomRatio = currentDistance / initialDistance;
+                        currentZoom = Math.max(minZoom, Math.min(maxZoom, initialZoom * zoomRatio));
+                        updateZoom();
+                    }
+                }, { passive: false });
+            }
+        });
+        
+        // Agregar funcionalidad al botón de agregar al carrito
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnAgregar = document.getElementById('btn-agregar-carrito');
+            
+            // Actualizar stock cada 10 segundos (reducido para evitar rate limiting)
+            setInterval(actualizarStockTallas, 10000);
+            
+            // Actualizar stock cuando se selecciona una talla
+            const tallasInputs = document.querySelectorAll('input[name="talla"]');
+            tallasInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    actualizarStockTallas();
+                });
+            });
+            
+            // Actualizar stock inicial
+            actualizarStockTallas();
+            
+            if (btnAgregar) {
+                btnAgregar.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const productoId = this.getAttribute('data-producto-id');
+                    const productoNombre = this.getAttribute('data-producto-nombre');
+                    const productoPrecio = parseFloat(this.getAttribute('data-producto-precio'));
+                    const productoImagen = this.getAttribute('data-producto-imagen');
+                    
+                    // Obtener talla seleccionada
+                    const tallaInput = document.querySelector('input[name="talla"]:checked');
+                    const tallaHidden = document.getElementById('talla-hidden');
+                    const talla = tallaInput ? tallaInput.value : (tallaHidden ? tallaHidden.value : 'Talla Única');
+                    
+                    if (!tallaInput && !tallaHidden) {
+                        if (typeof notificarAdvertencia === 'function') {
+                            notificarAdvertencia('Por favor selecciona una talla');
+                        } else {
+                            alert('Por favor selecciona una talla');
+                        }
+                        return;
+                    }
+                    
+                    if (typeof agregarAlCarrito === 'function') {
+                        // Modificar la función para incluir talla
+                        fetch('/agregar_carrito', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                producto_id: parseInt(productoId),
+                                nombre: productoNombre,
+                                precio: productoPrecio,
+                                imagen: productoImagen,
+                                talla: talla,
+                                cantidad: 1
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Actualizar badge del carrito
+                                if (typeof actualizarBadgeCarrito === 'function') {
+                                    actualizarBadgeCarrito(data.cantidad_total);
+                                }
+                                if (typeof mostrarFeedbackAgregado === 'function') {
+                                    mostrarFeedbackAgregado();
+                                }
+                                // Actualizar stock después de agregar (con delay para evitar rate limiting)
+                                setTimeout(actualizarStockTallas, 2000);
+                            } else {
+                                if (typeof notificarError === 'function') {
+                                    notificarError('Error: ' + (data.error || 'Error desconocido'));
+                                } else {
+                                    alert('Error: ' + (data.error || 'Error desconocido'));
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            if (typeof notificarError === 'function') {
+                                notificarError('Error al agregar el producto al carrito');
+                            } else {
+                                alert('Error al agregar el producto al carrito');
+                            }
+                        });
+                    } else {
+                        // Fallback si la función no está disponible
+                        fetch('/agregar_carrito', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                producto_id: parseInt(productoId),
+                                nombre: productoNombre,
+                                precio: productoPrecio,
+                                imagen: productoImagen,
+                                talla: talla,
+                                cantidad: 1
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (typeof notificarExito === 'function') {
+                                    notificarExito('Producto agregado al carrito');
+                                } else {
+                                    alert('Producto agregado al carrito');
+                                }
+                                setTimeout(() => {
+                                    window.location.href = '{{ url_for("carrito") }}';
+                                }, 1000);
+                            } else {
+                                if (typeof notificarError === 'function') {
+                                    notificarError('Error: ' + (data.error || 'Error desconocido'));
+                                } else {
+                                    alert('Error: ' + (data.error || 'Error desconocido'));
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            if (typeof notificarError === 'function') {
+                                notificarError('Error al agregar el producto al carrito');
+                            } else {
+                                alert('Error al agregar el producto al carrito');
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

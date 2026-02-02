@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archivo.Vent - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-page.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+</head>
+<body class="vent-page">
+    <div class="vent-page-container">
+        <h1 class="vent-section-title">archivo</h1>
+        <div class="vent-featured-box">archivo.vent colección 2026</div>
+        
+        <div class="vent-page-content">
+            {% if items %}
+            <div class="archive-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                {% for item in items %}
+                <div class="archive-item" style="border: 2px solid #000; padding: 1rem;">
+                    {% if item.imagen %}
+                    <img src="{{ url_for('static', filename=item.imagen.replace('/static/', '')) if item.imagen.startswith('/static/') else url_for('static', filename=item.imagen) }}" 
+                         alt="{{ item.titulo }}" style="width: 100%; height: auto; margin-bottom: 1rem;">
+                    {% endif %}
+                    <h3 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem;">{{ item.titulo }}</h3>
+                    {% if item.coleccion %}<p style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">{{ item.coleccion }}</p>{% endif %}
+                    {% if item.descripcion %}<p style="font-size: 0.9rem; line-height: 1.5;">{{ item.descripcion }}</p>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>Colección de archivo de VENT. Productos y diseños pasados.</p>
+            {% endif %}
+        </div>
+        
+        <a href="{{ url_for('index') }}" class="vent-back-link">← volver</a>
+    </div>
+</body>
+</html>

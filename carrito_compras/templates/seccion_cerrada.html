@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ seccion }} CERRADA - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-layout.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        .seccion-cerrada-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+            padding: 2rem;
+        }
+        .seccion-cerrada-titulo {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 3rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 2rem;
+            color: #000;
+        }
+        .seccion-cerrada-mensaje {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 3rem;
+            color: #666;
+        }
+        .seccion-cerrada-boton {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: #000;
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Courier New', Courier, monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 2px solid #000;
+            transition: all 0.3s;
+        }
+        .seccion-cerrada-boton:hover {
+            background: #fff;
+            color: #000;
+        }
+    </style>
+</head>
+<body class="vent-layout">
+    <!-- Navegación superior -->
+    <nav class="vent-nav">
+        <div class="vent-nav-left">
+            <a href="{{ url_for('index') }}">
+                <svg class="vent-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </a>
+        </div>
+        <div class="vent-nav-center">
+            <span style="font-family: 'Courier New', Courier, monospace; text-transform: uppercase; letter-spacing: 2px;">{{ seccion }}</span>
+        </div>
+        <div class="vent-nav-right">
+            <a href="{{ url_for('carrito') }}" class="vent-cart-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <main class="vent-main">
+        <div class="seccion-cerrada-container">
+            <h1 class="seccion-cerrada-titulo">{{ seccion }}</h1>
+            <p class="seccion-cerrada-mensaje">{{ mensaje }}</p>
+            <a href="{{ url_for('index') }}" class="seccion-cerrada-boton">Volver al inicio</a>
+        </div>
+    </main>
+</body>
+</html>

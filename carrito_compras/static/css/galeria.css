@@ -1,53 +1,93 @@
-/* Contenedor centrado */
+/* Contenedor centrado - Estilo Yeezy/Supreme */
 .centered-container {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
+    padding: 4rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
-/* Imágenes responsivas */
+/* Imágenes responsivas - Estilo Yeezy/Supreme */
 .img-fluid {
     max-width: 100%;
     height: auto;
+    margin-bottom: 2rem;
 }
 
-/* Contenedor de tarjetas */
+.centered-container > a img {
+    max-width: 250px;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+/* Contenedor de tarjetas - Estilo Yeezy/Supreme mejorado */
 .card-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px; /* Espacio entre las tarjetas */
-    margin-top: 20px; /* Espacio entre el GIF y las tarjetas */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 3rem;
+    max-width: 1400px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+    width: 100%;
 }
 
-/* Estilos de tarjetas */
+/* Estilos de tarjetas - Estilo Yeezy/Supreme mejorado */
 .card {
-    width: 200px; /* Ancho fijo para las tarjetas */
+    width: 100%;
+    max-width: 100%;
     overflow: hidden;
     background-color: #fff;
-    cursor: pointer; /* Indica que es clickeable */
-    border-radius: 8px; /* Bordes redondeados */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil */
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transición suave */
+    border: 2px solid #000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0;
+    position: relative;
 }
 
 .card:hover {
-    transform: translateY(-5px); /* Efecto de elevación al pasar el mouse */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+    transform: translateY(-10px);
+    box-shadow: 10px 10px 0 #000;
 }
 
 .card-img {
     width: 100%;
-    height: auto;
-    display: block; /* Elimina espacio extra debajo de la imagen */
+    height: 450px;
+    object-fit: cover;
+    display: block;
+    background-color: #f5f5f5;
+    transition: transform 0.3s ease;
 }
 
-/* Estilos del modal */
-.modal-dialog {
-    max-width: 800px;
-    max-height: 90%;
-    margin: 1.75rem auto;
+.card:hover .card-img {
+    transform: scale(1.05);
+}
+
+/* Estilos del modal - Sobrescribir Bootstrap */
+.modal {
+    padding: 0 !important;
+}
+
+.modal-dialog,
+.modal-dialog-centered {
+    max-width: 1000px !important;
+    width: 90% !important;
+    max-height: 90vh !important;
+    margin: 2rem auto !important;
+    padding: 0 !important;
+}
+
+.modal.show .modal-dialog {
+    transform: none !important;
+}
+
+.modal-content {
+    border-radius: 12px;
+    border: 2px solid #000;
+    height: auto;
+    max-height: 90vh;
 }
 
 .modal-body {
@@ -55,51 +95,119 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding: 2rem;
+    padding: 3rem 4rem;
+    min-height: 500px;
 }
 
 .modal-body img {
-    max-width: 65%;
-    max-height: 80vh; /* Limita la altura de la imagen */
+    max-width: 50%;
+    width: 50%;
+    max-height: 80vh;
+    min-height: 400px;
     object-fit: contain;
-    margin-right: 1rem;
-    border-radius: 8px; /* Bordes redondeados para la imagen */
+    margin-right: 2.5rem;
+    border-radius: 8px;
+    background-color: transparent;
+}
+
+.modal-body .text-container img {
+    max-width: 200px;
+    width: auto;
+    height: auto;
+    min-height: auto;
+    margin: 1rem 0;
+    background-color: transparent;
+    border-radius: 0;
+    display: block;
 }
 
 .modal-body .text-container {
     flex: 1;
-    padding-left: 1rem; /* Espaciado interno */
+    padding-left: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .modal-body h5 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #333; /* Color de texto oscuro */
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: #000;
+    font-weight: bold;
 }
 
 .modal-body p {
     margin-bottom: 1.5rem;
-    color: #555; /* Color de texto gris */
-    line-height: 1.6; /* Mejor legibilidad */
+    color: #555;
+    line-height: 1.8;
+    font-size: 1.2rem;
 }
 
 .modal-body .btn {
-    background-color: #333;
+    background-color: #000;
     color: #fff;
     border: none;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+    padding: 1rem 2.5rem;
+    font-size: 1.2rem;
     cursor: pointer;
-    border-radius: 4px; /* Bordes redondeados */
-    transition: background-color 0.3s ease; /* Transición suave */
+    border-radius: 4px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    font-family: "Courier New", Courier, monospace;
+    margin-top: 1.5rem;
 }
 
 .modal-body .btn:hover {
-    background-color: #555; /* Cambio de color al pasar el mouse */
+    background-color: #444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Clase para textos con fuente Courier */
+.precio-producto {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #000;
+    margin: 1.2rem 0;
+}
+
+/* Responsive para modales */
+@media (max-width: 992px) {
+    .modal-dialog {
+        max-width: 95%;
+        width: 95%;
+    }
+    
+    .modal-body {
+        flex-direction: column;
+        padding: 2rem;
+    }
+    
+    .modal-body img {
+        max-width: 100%;
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 1.5rem;
+        min-height: auto;
+    }
+    
+    .modal-body .text-container {
+        padding-left: 0;
+        text-align: center;
+    }
+}
+
+/* Clase para textos con fuente Courier - Estilo Yeezy/Supreme mejorado */
 .Texto {
     font-family: "Courier New", Courier, monospace;
-    color: #333; /* Color de texto oscuro */
+    color: #000;
+    font-size: 3rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: bold;
+    margin: 3rem 0 2rem 0;
+    line-height: 1.2;
+}
+
+.Texto h5 {
+    margin: 0;
+    font-size: inherit;
 }

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if cupon %}Editar Cupón{% else %}Agregar Cupón{% endif %} - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>{% if cupon %}Editar Cupón{% else %}Agregar Cupón{% endif %}</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_cupones') }}" class="btn-admin">← Volver a Cupones</a>
+            </div>
+        </header>
+
+        <div class="admin-section">
+            {% if error %}
+            <div class="alert alert-error" style="background: #f8d7da; color: #721c24; padding: 1rem; margin-bottom: 1.5rem; border: 1px solid #f5c6cb; border-radius: 4px;">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST" class="admin-form">
+                <div class="form-group">
+                    <label for="codigo">Código del Cupón *</label>
+                    <input type="text" id="codigo" name="codigo" 
+                           value="{{ cupon.codigo if cupon else '' }}" 
+                           required 
+                           style="text-transform: uppercase;"
+                           placeholder="EJEMPLO123">
+                    <small style="color: #666; font-size: 0.85rem;">El código se convertirá automáticamente a mayúsculas</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo_descuento">Tipo de Descuento *</label>
+                    <select id="tipo_descuento" name="tipo_descuento" required>
+                        <option value="porcentaje" {% if cupon and cupon.tipo_descuento == 'porcentaje' %}selected{% endif %}>Porcentaje (%)</option>
+                        <option value="fijo" {% if cupon and cupon.tipo_descuento == 'fijo' %}selected{% endif %}>Monto Fijo (CLP)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="valor_descuento">Valor del Descuento *</label>
+                    <input type="number" id="valor_descuento" name="valor_descuento" 
+                           value="{{ cupon.valor_descuento if cupon else '' }}" 
+                           required 
+                           step="0.01" 
+                           min="0"
+                           placeholder="{% if cupon and cupon.tipo_descuento == 'porcentaje' %}10{% else %}5000{% endif %}">
+                    <small style="color: #666; font-size: 0.85rem;" id="valor_help">
+                        {% if cupon and cupon.tipo_descuento == 'porcentaje' %}
+                            Ingresa el porcentaje (ej: 10 para 10%)
+                        {% else %}
+                            Ingresa el monto en CLP (ej: 5000)
+                        {% endif %}
+                    </small>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="fecha_inicio">Fecha de Inicio</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" 
+                               value="{{ cupon.fecha_inicio if cupon and cupon.fecha_inicio else '' }}">
+                        <small style="color: #666; font-size: 0.85rem;">Dejar vacío para sin límite</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha_fin">Fecha de Fin</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin" 
+                               value="{{ cupon.fecha_fin if cupon and cupon.fecha_fin else '' }}">
+                        <small style="color: #666; font-size: 0.85rem;">Dejar vacío para sin límite</small>
+                    </div>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="uso_maximo">Uso Máximo</label>
+                        <input type="number" id="uso_maximo" name="uso_maximo" 
+                               value="{{ cupon.uso_maximo if cupon else '0' }}" 
+                               min="0"
+                               placeholder="0">
+                        <small style="color: #666; font-size: 0.85rem;">0 = Ilimitado</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="monto_minimo">Monto Mínimo de Compra (CLP)</label>
+                        <input type="number" id="monto_minimo" name="monto_minimo" 
+                               value="{{ cupon.monto_minimo if cupon else '0' }}" 
+                               min="0" 
+                               step="0.01"
+                               placeholder="0">
+                        <small style="color: #666; font-size: 0.85rem;">0 = Sin mínimo</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" name="activo" {% if cupon and cupon.activo or not cupon %}checked{% endif %}>
+                        <span>Cupón Activo</span>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">
+                        {% if cupon %}Actualizar Cupón{% else %}Crear Cupón{% endif %}
+                    </button>
+                    <a href="{{ url_for('admin_cupones') }}" class="btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Actualizar ayuda del valor según el tipo de descuento
+        document.getElementById('tipo_descuento').addEventListener('change', function() {
+            const tipo = this.value;
+            const valorInput = document.getElementById('valor_descuento');
+            const helpText = document.getElementById('valor_help');
+            
+            if (tipo === 'porcentaje') {
+                valorInput.placeholder = '10';
+                helpText.textContent = 'Ingresa el porcentaje (ej: 10 para 10%)';
+            } else {
+                valorInput.placeholder = '5000';
+                helpText.textContent = 'Ingresa el monto en CLP (ej: 5000)';
+            }
+        });
+        
+        // Convertir código a mayúsculas automáticamente
+        document.getElementById('codigo').addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    </script>
+</body>
+</html>

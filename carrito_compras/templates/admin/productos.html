@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Productos - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Gestión de Productos</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_index') }}" class="btn-admin">← Panel Principal</a>
+                <a href="{{ url_for('admin_agregar_producto') }}" class="btn-primary">+ Agregar Producto</a>
+            </div>
+        </header>
+
+        <div class="admin-section">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Categoría</th>
+                        <th>Stock</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr>
+                        <td>{{ producto.id }}</td>
+                        <td>
+                            <img src="{{ url_for('static', filename=producto.imagen.replace('/static/', '')) if producto.imagen.startswith('/static/') else url_for('static', filename=producto.imagen) }}" 
+                                 alt="{{ producto.nombre }}" class="table-image">
+                        </td>
+                        <td>{{ producto.nombre }}</td>
+                        <td>{{ producto.precio|formato_precio_clp }}</td>
+                        <td>{{ producto.categoria or 'N/A' }}</td>
+                        <td>{{ producto.stock or 0 }}</td>
+                        <td>
+                            <span class="badge badge-{{ 'activo' if producto.activo else 'inactivo' }}">
+                                {{ 'Activo' if producto.activo else 'Inactivo' }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_editar_producto', id=producto.id) }}" class="btn-small">Editar</a>
+                            <button onclick="eliminarProducto({{ producto.id }})" class="btn-small btn-danger">Eliminar</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function eliminarProducto(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+                fetch(`/admin/productos/eliminar/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof notificarExito === 'function') {
+                            notificarExito('Producto eliminado correctamente');
+                        }
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        if (typeof notificarError === 'function') {
+                            notificarError('Error al eliminar el producto');
+                        } else {
+                            alert('Error al eliminar el producto');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (typeof notificarError === 'function') {
+                        notificarError('Error al eliminar el producto');
+                    } else {
+                        alert('Error al eliminar el producto');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

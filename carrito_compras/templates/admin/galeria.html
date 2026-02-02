@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Galería - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Gestión de Galería</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_index') }}" class="btn-admin">← Panel Principal</a>
+                <a href="{{ url_for('admin_agregar_galeria') }}" class="btn-primary">+ Agregar a Galería</a>
+            </div>
+        </header>
+
+        <div class="admin-section">
+            {% if items %}
+            <div class="gallery-grid">
+                {% for item in items %}
+                <div class="gallery-item">
+                    <img src="{{ url_for('static', filename=item.imagen.replace('/static/', '')) if item.imagen.startswith('/static/') else url_for('static', filename=item.imagen) }}" 
+                         alt="{{ item.titulo or 'Galería' }}">
+                    <div class="gallery-item-info">
+                        <h3>{{ item.titulo or 'Sin título' }}</h3>
+                        {% if item.modelo %}<p><strong>Modelo:</strong> {{ item.modelo }}</p>{% endif %}
+                        {% if item.coleccion %}<p><strong>Colección:</strong> {{ item.coleccion }}</p>{% endif %}
+                        <div class="gallery-item-actions">
+                            <a href="{{ url_for('admin_editar_galeria', id=item.id) }}" class="btn-small">Editar</a>
+                            <button onclick="eliminarGaleria({{ item.id }})" class="btn-small btn-danger">Eliminar</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No hay items en la galería.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function eliminarGaleria(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este item de la galería?')) {
+                fetch(`/admin/galeria/eliminar/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof notificarExito === 'function') {
+                            notificarExito('Item eliminado de la galería');
+                        }
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        if (typeof notificarError === 'function') {
+                            notificarError('Error al eliminar el item');
+                        } else {
+                            alert('Error al eliminar el item');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (typeof notificarError === 'function') {
+                        notificarError('Error al eliminar el item');
+                    } else {
+                        alert('Error al eliminar el item');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

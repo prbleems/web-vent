@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Panel de Administración VENT</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('index') }}" class="btn-admin">← Volver a la tienda</a>
+                <a href="{{ url_for('admin_logout') }}" class="btn-admin">Cerrar sesión</a>
+            </div>
+        </header>
+
+        <div class="admin-stats">
+            <div class="stat-card">
+                <h3>Productos</h3>
+                <p class="stat-number">{{ total_productos }}</p>
+                <a href="{{ url_for('admin_productos') }}" class="stat-link">Gestionar →</a>
+            </div>
+            <div class="stat-card">
+                <h3>Pedidos</h3>
+                <p class="stat-number">{{ total_pedidos }}</p>
+                <a href="{{ url_for('admin_pedidos') }}" class="stat-link">Ver pedidos →</a>
+            </div>
+            <div class="stat-card">
+                <h3>Galería</h3>
+                <p class="stat-number">{{ total_galeria }}</p>
+                <a href="{{ url_for('admin_galeria') }}" class="stat-link">Gestionar →</a>
+            </div>
+            <div class="stat-card">
+                <h3>Archivo</h3>
+                <p class="stat-number">{{ total_archivo }}</p>
+                <a href="{{ url_for('admin_archivo') }}" class="stat-link">Gestionar →</a>
+            </div>
+            <div class="stat-card">
+                <h3>Cupones</h3>
+                <p class="stat-number">{{ total_cupones }}</p>
+                <a href="{{ url_for('admin_cupones') }}" class="stat-link">Gestionar →</a>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h2>Pedidos Recientes</h2>
+            {% if pedidos_recientes %}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Número de Pedido</th>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido in pedidos_recientes %}
+                    <tr>
+                        <td>#{{ pedido.id }}</td>
+                        <td><strong>{{ pedido.numero_pedido or 'N/A' }}</strong></td>
+                        <td>{{ pedido.usuario_nombre or 'Cliente' }}</td>
+                        <td>{{ pedido.total|formato_precio_clp }}</td>
+                        <td><span class="badge badge-{{ pedido.estado }}">{{ pedido.estado }}</span></td>
+                        <td>{{ pedido.fecha }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_detalle_pedido', id=pedido.id) }}" class="btn-small">Ver</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No hay pedidos recientes.</p>
+            {% endif %}
+        </div>
+
+        <div class="admin-quick-actions">
+            <h2>Acciones Rápidas</h2>
+            <div class="action-buttons">
+                <a href="{{ url_for('admin_agregar_producto') }}" class="btn-primary">+ Agregar Producto</a>
+                <a href="{{ url_for('admin_agregar_galeria') }}" class="btn-primary">+ Agregar a Galería</a>
+                <a href="{{ url_for('admin_agregar_archivo') }}" class="btn-primary">+ Agregar a Archivo</a>
+                <a href="{{ url_for('admin_agregar_cupon') }}" class="btn-primary">+ Crear Cupón</a>
+            </div>
+        </div>
+
+        {% if productos_stock_bajo and productos_stock_bajo|length > 0 %}
+        <div class="admin-section" style="margin-top: 2rem; border: 2px solid #ffc107; background-color: #fff3cd;">
+            <h2 style="color: #856404;">⚠️ Alertas de Stock Bajo</h2>
+            <p style="color: #856404; margin-bottom: 1rem;">Los siguientes productos tienen stock bajo (menos de 10 unidades):</p>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Producto</th>
+                        <th>Stock Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos_stock_bajo %}
+                    <tr>
+                        <td>#{{ producto.id }}</td>
+                        <td>{{ producto.nombre }}</td>
+                        <td style="color: {% if producto.stock_total and producto.stock_total < 5 %}red{% elif producto.stock_total and producto.stock_total < 10 %}orange{% else %}black{% endif %}; font-weight: bold;">
+                            {{ producto.stock_total or 0 }} unidades
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_editar_producto', id=producto.id) }}" class="btn-small">Editar Stock</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="admin-section" style="margin-top: 2rem;">
+            <h2>Configuración</h2>
+            <div class="action-buttons">
+                <a href="{{ url_for('admin_configuracion') }}" class="btn-primary">⚙️ Gestionar Secciones</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

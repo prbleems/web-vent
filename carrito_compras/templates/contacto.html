@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacto - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-page.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body class="vent-page">
+    <div class="vent-page-container">
+        <h1 class="vent-section-title">contacto</h1>
+        
+        <!-- Logo VENT 3D -->
+        <div class="vent-logo-container" style="text-align: center; margin-bottom: 1rem; margin-top: 1rem;">
+            <a href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='img/vent3d.gif') }}" alt="VENT" style="max-width: 200px; width: auto; height: auto; display: block; margin: 0 auto;">
+            </a>
+        </div>
+        
+        <!-- Fecha y hora -->
+        <div class="vent-datetime" id="time" style="text-align: center; margin-bottom: 3rem;"></div>
+        
+        <div class="vent-page-content">
+            <div class="vent-policy-section">
+                <h3 class="vent-policy-title">todas las ventas son finales</h3>
+                <p class="vent-policy-text">
+                    Todas las ventas son finales debido al bajo costo de los productos. No ofrecemos devoluciones ni cambios. Por favor, revisa tu pedido cuidadosamente antes de completar tu compra.
+                </p>
+                
+                <h3 class="vent-policy-title">problemas con pedidos</h3>
+                <p class="vent-policy-text">
+                    Si un artículo es incorrecto o defectuoso, envíanos un correo a <a href="mailto:contact@vent.cl">contact@vent.cl</a> y nos haremos responsables y lo resolveremos rápidamente.
+                </p>
+                <p class="vent-policy-text">
+                    Por favor incluye tu número de pedido y una breve descripción.
+                </p>
+            </div>
+        </div>
+        
+        <a href="{{ url_for('index') }}" class="vent-back-link">← volver</a>
+    </div>
+</body>
+</html>

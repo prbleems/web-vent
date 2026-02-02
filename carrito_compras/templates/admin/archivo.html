@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Archivo - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Gestión de Archivo</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_index') }}" class="btn-admin">← Panel Principal</a>
+                <a href="{{ url_for('admin_agregar_archivo') }}" class="btn-primary">+ Agregar a Archivo</a>
+            </div>
+        </header>
+
+        <div class="admin-section">
+            {% if items %}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Título</th>
+                        <th>Colección</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>
+                            <img src="{{ url_for('static', filename=item.imagen.replace('/static/', '')) if item.imagen and item.imagen.startswith('/static/') else url_for('static', filename=item.imagen) if item.imagen else url_for('static', filename='img/prueba.galeria.png') }}" 
+                                 alt="{{ item.titulo }}" class="table-image">
+                        </td>
+                        <td>{{ item.titulo }}</td>
+                        <td>{{ item.coleccion or 'N/A' }}</td>
+                        <td>{{ item.fecha }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_editar_archivo', id=item.id) }}" class="btn-small">Editar</a>
+                            <button onclick="eliminarArchivo({{ item.id }})" class="btn-small btn-danger">Eliminar</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No hay items en el archivo.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function eliminarArchivo(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este item del archivo?')) {
+                fetch(`/admin/archivo/eliminar/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof notificarExito === 'function') {
+                            notificarExito('Item eliminado del archivo');
+                        }
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        if (typeof notificarError === 'function') {
+                            notificarError('Error al eliminar el item');
+                        } else {
+                            alert('Error al eliminar el item');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (typeof notificarError === 'function') {
+                        notificarError('Error al eliminar el item');
+                    } else {
+                        alert('Error al eliminar el item');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

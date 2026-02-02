@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidad - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-page.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+</head>
+<body class="vent-page">
+    <div class="vent-page-container">
+        <h1 class="vent-section-title">política de privacidad</h1>
+        
+        <!-- Logo VENT 3D -->
+        <div class="vent-logo-container" style="text-align: center; margin-bottom: 1rem; margin-top: 1rem;">
+            <a href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='img/vent3d.gif') }}" alt="VENT" style="max-width: 200px; width: auto; height: auto; display: block; margin: 0 auto;">
+            </a>
+        </div>
+        
+        <div class="vent-page-content">
+            <div class="vent-policy-section">
+                <h3 class="vent-policy-title">1. información que recopilamos</h3>
+                <p class="vent-policy-text">
+                    Recopilamos información que nos proporcionas directamente cuando realizas una compra, incluyendo:
+                </p>
+                <ul class="vent-policy-list">
+                    <li>Nombre completo</li>
+                    <li>Dirección de correo electrónico</li>
+                    <li>Número de teléfono</li>
+                    <li>Dirección de envío (si aplica)</li>
+                    <li>Información de pago (procesada de forma segura por nuestros proveedores de pago)</li>
+                </ul>
+
+                <h3 class="vent-policy-title">2. uso de la información</h3>
+                <p class="vent-policy-text">
+                    Utilizamos la información recopilada para:
+                </p>
+                <ul class="vent-policy-list">
+                    <li>Procesar y completar tus pedidos</li>
+                    <li>Enviarte confirmaciones de pedido y boletas</li>
+                    <li>Comunicarnos contigo sobre tu pedido</li>
+                    <li>Cumplir con obligaciones legales</li>
+                </ul>
+
+                <h3 class="vent-policy-title">3. protección de datos</h3>
+                <p class="vent-policy-text">
+                    Implementamos medidas de seguridad técnicas y organizativas para proteger tus datos personales contra acceso no autorizado, alteración, divulgación o destrucción. Tus datos de pago son procesados de forma segura por proveedores certificados (Transbank, Mercado Pago) y no almacenamos información de tarjetas de crédito.
+                </p>
+
+                <h3 class="vent-policy-title">4. compartir información</h3>
+                <p class="vent-policy-text">
+                    No vendemos, alquilamos ni compartimos tu información personal con terceros, excepto:
+                </p>
+                <ul class="vent-policy-list">
+                    <li>Proveedores de servicios de pago (Transbank, Mercado Pago) para procesar pagos</li>
+                    <li>Empresas de envío para entregar tus pedidos</li>
+                    <li>Cuando sea requerido por ley o autoridades competentes</li>
+                </ul>
+
+                <h3 class="vent-policy-title">5. tus derechos</h3>
+                <p class="vent-policy-text">
+                    De acuerdo con la Ley 19.628 sobre Protección de Datos Personales de Chile, tienes derecho a:
+                </p>
+                <ul class="vent-policy-list">
+                    <li>Acceder a tus datos personales</li>
+                    <li>Solicitar la corrección de datos inexactos</li>
+                    <li>Solicitar la eliminación de tus datos (cuando sea legalmente posible)</li>
+                    <li>Oponerte al tratamiento de tus datos</li>
+                </ul>
+                <p class="vent-policy-text">
+                    Para ejercer estos derechos, contáctanos en <a href="mailto:contact@vent.cl">contact@vent.cl</a>
+                </p>
+
+                <h3 class="vent-policy-title">6. cookies</h3>
+                <p class="vent-policy-text">
+                    Utilizamos cookies técnicas necesarias para el funcionamiento del sitio web y para mantener tu sesión de compra. No utilizamos cookies de seguimiento publicitario.
+                </p>
+
+                <h3 class="vent-policy-title">7. cambios a esta política</h3>
+                <p class="vent-policy-text">
+                    Nos reservamos el derecho de actualizar esta política de privacidad. Te notificaremos de cambios significativos publicando la nueva política en esta página.
+                </p>
+
+                <h3 class="vent-policy-title">8. contacto</h3>
+                <p class="vent-policy-text">
+                    Si tienes preguntas sobre esta política de privacidad, contáctanos en:
+                </p>
+                <p class="vent-policy-text">
+                    Email: <a href="mailto:contact@vent.cl">contact@vent.cl</a>
+                </p>
+            </div>
+        </div>
+        
+        <a href="{{ url_for('index') }}" class="vent-back-link">← volver</a>
+    </div>
+</body>
+</html>

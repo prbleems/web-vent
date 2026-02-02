@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Pedidos - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+            <header class="admin-header">
+                <h1>Gestión de Pedidos</h1>
+                <div class="admin-nav">
+                    <a href="{{ url_for('admin_index') }}" class="btn-admin">← Panel Principal</a>
+                    <a href="{{ url_for('admin_exportar_pedidos') }}" class="btn-admin" style="background-color: #28a745; color: #fff;">📥 Exportar CSV</a>
+                </div>
+            </header>
+
+        <div class="admin-section">
+            {% if pedidos %}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Número de Pedido</th>
+                        <th>Cliente</th>
+                        <th>Email</th>
+                        <th>Entrega</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th>Items</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pedido_data in pedidos %}
+                    {% set pedido = pedido_data.pedido %}
+                    {% set items_list = pedido_data.pedido_items %}
+                    <tr>
+                        <td>#{{ pedido.id }}</td>
+                        <td><strong>{{ pedido.numero_pedido or 'N/A' }}</strong></td>
+                        <td>{{ pedido.usuario_nombre or 'Cliente' }}</td>
+                        <td>{{ pedido.usuario_email or 'N/A' }}</td>
+                        <td>
+                            {% if pedido.tipo_envio == 'retiro' %}
+                                <span style="color: #28a745; font-weight: bold;">RETIRO</span>
+                            {% elif pedido.tipo_envio == 'envio' %}
+                                <span style="font-weight: bold;">ENVÍO</span><br>
+                                <small style="color: #666;">
+                                    {% if pedido.comuna %}{{ pedido.comuna }}{% endif %}
+                                    {% if pedido.region %}, {{ pedido.region }}{% endif %}
+                                </small>
+                            {% else %}
+                                <span style="color: #999;">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ pedido.total|formato_precio_clp }}</td>
+                        <td>
+                            <span class="badge badge-{{ pedido.estado }}">{{ pedido.estado }}</span>
+                        </td>
+                        <td>{{ pedido.fecha }}</td>
+                        <td>{{ items_list|length }} items</td>
+                        <td>
+                            <a href="{{ url_for('admin_detalle_pedido', id=pedido.id) }}" class="btn-small">Ver Detalle</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No hay pedidos registrados.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

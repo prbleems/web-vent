@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nosotros - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-menu.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vent-page.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        /* Estilo específico para página nosotros - Estilo Supreme */
+        body.vent-page-about {
+            background-color: #fff;
+            color: #000;
+            min-height: 100vh;
+            padding: 2rem;
+            font-family: "Courier New", Courier, monospace;
+        }
+        
+        .vent-page-about .vent-about-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .vent-page-about .vent-logo-container {
+            margin-bottom: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .vent-page-about .vent-logo-gif {
+            max-width: 200px;
+            width: auto;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .vent-page-about .vent-datetime {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.85rem;
+            color: #000;
+            margin: 0.5rem 0 3rem 0;
+            text-transform: lowercase;
+            letter-spacing: 1px;
+        }
+        
+        .vent-page-about .vent-about-content {
+            text-align: left;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .vent-page-about .vent-about-content h2 {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.1rem;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0 0 1.5rem 0;
+            font-weight: normal;
+        }
+        
+        .vent-page-about .vent-about-content p {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.9rem;
+            color: #000;
+            line-height: 1.8;
+            margin: 0 0 1.5rem 0;
+            text-align: left;
+        }
+        
+        .vent-page-about .vent-about-nav {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+        
+        .vent-page-about .vent-about-nav-left {
+            text-align: left;
+        }
+        
+        .vent-page-about .vent-about-nav-right {
+            text-align: right;
+        }
+        
+        .vent-page-about .vent-about-nav a {
+            color: #000;
+            text-decoration: none;
+            text-transform: lowercase;
+            letter-spacing: 0.5px;
+            margin: 0 0.5rem;
+        }
+        
+        .vent-page-about .vent-about-nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="vent-page vent-page-about">
+    <div class="vent-about-container">
+        <!-- Logo VENT 3D -->
+        <div class="vent-logo-container">
+            <a href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='img/vent3d.gif') }}" alt="VENT" class="vent-logo-gif">
+            </a>
+        </div>
+        
+        <!-- Fecha y hora -->
+        <div class="vent-datetime" id="time"></div>
+        
+        <!-- Contenido About -->
+        <div class="vent-about-content">
+            <h2>nosotros</h2>
+            <p>
+                VENT es una marca de ropa chilena inspirada en la estética minimalista y el diseño urbano. Fundada con la visión de crear prendas de calidad que reflejen la identidad de la cultura callejera contemporánea.
+            </p>
+            <p>
+                En VENT, creemos en la simplicidad, la autenticidad y el diseño atemporal. Cada pieza está diseñada pensando en la versatilidad y la calidad, manteniendo siempre un enfoque minimalista que permite que la prenda hable por sí misma.
+            </p>
+            <p>
+                Nuestra marca ha crecido desde sus orígenes en Chile hasta convertirse en una comunidad global, trabajando con artistas, diseñadores y creadores que comparten nuestra visión de moda urbana y minimalista.
+            </p>
+            <p>
+                Con más de una década de experiencia, VENT se ha establecido como una marca conocida por su calidad, estilo y autenticidad, siempre manteniendo su esencia original mientras evoluciona con las nuevas generaciones.
+            </p>
+        </div>
+        
+        <!-- Navegación inferior -->
+        <div class="vent-about-nav">
+            <div class="vent-about-nav-left">
+                <a href="{{ url_for('tienda') }}">tienda</a>
+            </div>
+            <div class="vent-about-nav-right">
+                <a href="{{ url_for('tienda') }}">nuevo</a> <a href="{{ url_for('archivo') }}">archivo</a>
+            </div>
+        </div>
+        
+        <!-- Botón volver -->
+        <div style="margin-top: 3rem; text-align: left;">
+            <a href="{{ url_for('index') }}" class="vent-back-link">← volver</a>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

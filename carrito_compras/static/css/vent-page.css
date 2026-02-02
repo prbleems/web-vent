@@ -1,0 +1,322 @@
+/* Páginas VENT - Blanco y Negro con caja destacada */
+
+.vent-page {
+    background-color: #fff;
+    color: #000;
+    min-height: 100vh;
+    padding: 4rem 3rem;
+    font-family: "Courier New", Courier, monospace;
+}
+
+/* Contenedor principal */
+.vent-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Título de sección - Parte superior izquierda */
+.vent-section-title {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1.1rem;
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0 0 1rem 0;
+    font-weight: normal;
+    text-align: left;
+}
+
+/* Caja destacada - Blanco y Negro */
+.vent-featured-box {
+    background-color: #000;
+    color: #fff;
+    padding: 1rem 1.5rem;
+    margin: 0.5rem 0 3rem 0;
+    display: block;
+    width: fit-content;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1rem;
+    text-transform: lowercase;
+    letter-spacing: 1px;
+    border: none;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.vent-featured-box:hover {
+    background-color: #fff;
+    color: #000;
+    border: 2px solid #000;
+}
+
+/* Contenido de la página */
+.vent-page-content {
+    margin-top: 2rem;
+    line-height: 1.8;
+    font-size: 1rem;
+    color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+}
+
+/* Lista de items */
+.vent-items-list {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+}
+
+.vent-items-list li {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.vent-items-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #000;
+}
+
+.vent-items-list a {
+    color: #000;
+    text-decoration: none;
+    text-transform: lowercase;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    display: inline-block;
+}
+
+.vent-items-list a:hover {
+    background-color: #000;
+    color: #fff;
+    padding: 0.2rem 0.5rem;
+}
+
+/* Botón volver */
+.vent-back-link {
+    display: inline-block;
+    margin-top: 3rem;
+    color: #000;
+    text-decoration: none;
+    text-transform: lowercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    padding: 0.5rem 1rem;
+    border: 1px solid transparent;
+}
+
+.vent-back-link:hover {
+    border: 1px solid #000;
+    background-color: #f5f5f5;
+}
+
+/* Grid de productos para páginas de contenido */
+.vent-content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+/* Formulario de contacto estilo Supreme */
+.vent-form-title {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1.2rem;
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 2rem 0 2.5rem 0;
+    font-weight: normal;
+}
+
+.vent-contact-form {
+    max-width: 800px;
+    margin: 0;
+}
+
+.vent-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.vent-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.vent-form-group.vent-form-full {
+    grid-column: 1 / -1;
+}
+
+.vent-form-group label {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+    color: #000;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.vent-form-group input,
+.vent-form-group select,
+.vent-form-group textarea {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.95rem;
+    color: #000;
+    padding: 0.8rem;
+    border: 1px solid #000;
+    background-color: #fff;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+}
+
+.vent-form-group input:focus,
+.vent-form-group select:focus,
+.vent-form-group textarea:focus {
+    outline: none;
+    border: 2px solid #000;
+    background-color: #f9f9f9;
+}
+
+.vent-form-group select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    padding-right: 2.5rem;
+}
+
+.vent-form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.vent-submit-btn {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #000;
+    border: 2px solid #000;
+    padding: 1rem 2.5rem;
+    text-transform: lowercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 1.5rem;
+    width: auto;
+}
+
+.vent-submit-btn:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+.vent-submit-btn:active {
+    transform: translateY(1px);
+}
+
+/* Sección de políticas - Centrada */
+.vent-policy-section {
+    margin: 0 auto;
+    padding: 0;
+    border: none;
+    max-width: 700px;
+    text-align: center;
+    width: 100%;
+}
+
+.vent-policy-title {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1rem;
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 2rem 0 1rem 0;
+    font-weight: normal;
+}
+
+.vent-policy-title:first-child {
+    margin-top: 0;
+}
+
+.vent-policy-text {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+    color: #000;
+    line-height: 1.8;
+    margin: 0 0 1.5rem 0;
+    text-transform: lowercase;
+    letter-spacing: 0.3px;
+}
+
+.vent-policy-text a {
+    color: #000;
+    text-decoration: underline;
+    transition: all 0.3s;
+}
+
+.vent-policy-text a:hover {
+    background-color: #000;
+    color: #fff;
+    padding: 0.1rem 0.3rem;
+}
+
+.vent-policy-list {
+    list-style: disc;
+    margin-left: 2rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+    text-align: left;
+}
+
+.vent-policy-list li {
+    margin-bottom: 0.5rem;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+    color: #000;
+    text-transform: lowercase;
+    letter-spacing: 0.3px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .vent-page {
+        padding: 2rem 1.5rem;
+    }
+    
+    .vent-section-title {
+        font-size: 1rem;
+    }
+    
+    .vent-featured-box {
+        font-size: 0.95rem;
+        padding: 1rem 1.5rem;
+    }
+    
+    .vent-content-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .vent-form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .vent-form-group.vent-form-full {
+        grid-column: 1;
+    }
+    
+    .vent-submit-btn {
+        width: 100%;
+    }
+}

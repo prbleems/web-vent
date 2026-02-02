@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if item %}Editar{% else %}Agregar{% endif %} Archivo - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>{% if item %}Editar{% else %}Agregar{% endif %} Item de Archivo</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_archivo') }}" class="btn-admin">← Volver</a>
+            </div>
+        </header>
+
+        <div class="admin-form-container">
+            <form method="POST" enctype="multipart/form-data" class="admin-form">
+                <div class="form-group">
+                    <label for="titulo">Título *</label>
+                    <input type="text" id="titulo" name="titulo" value="{{ item.titulo if item else '' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" rows="4">{{ item.descripcion if item else '' }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="coleccion">Colección</label>
+                    <input type="text" id="coleccion" name="coleccion" value="{{ item.coleccion if item else '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="imagen">Imagen</label>
+                    {% if item and item.imagen %}
+                    <div class="current-image">
+                        <p>Imagen actual:</p>
+                        <img src="{{ url_for('static', filename=item.imagen.replace('/static/', '')) if item.imagen.startswith('/static/') else url_for('static', filename=item.imagen) }}" alt="Imagen actual" style="max-width: 300px; margin-top: 10px;">
+                    </div>
+                    {% endif %}
+                    <input type="file" id="imagen" name="imagen" accept="image/*">
+                    <small>Formatos permitidos: PNG, JPG, JPEG, GIF, WEBP (máx. 16MB)</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">{% if item %}Actualizar{% else %}Agregar{% endif %} Item</button>
+                    <a href="{{ url_for('admin_archivo') }}" class="btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

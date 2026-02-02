@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if producto %}Editar{% else %}Agregar{% endif %} Producto - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>{% if producto %}Editar{% else %}Agregar{% endif %} Producto</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_productos') }}" class="btn-admin">← Volver</a>
+            </div>
+        </header>
+
+        <div class="admin-form-container">
+            <form method="POST" enctype="multipart/form-data" class="admin-form">
+                <div class="form-group">
+                    <label for="nombre">Nombre del Producto *</label>
+                    <input type="text" id="nombre" name="nombre" value="{{ producto.nombre if producto else '' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" rows="4">{{ producto.descripcion if producto else '' }}</textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="precio">Precio (CLP) *</label>
+                        <input type="number" id="precio" name="precio" step="1" min="0" value="{{ producto.precio if producto else '' }}" required>
+                        <small>Ingresa el precio en pesos chilenos (ej: 1000, 10000, 50000)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="stock">Stock General</label>
+                        <input type="number" id="stock" name="stock" min="0" value="{{ producto.stock if producto else 0 }}">
+                        <small>Stock general (se usará si no hay tallas específicas)</small>
+                    </div>
+                </div>
+                
+                <!-- Gestión de tallas -->
+                <div class="form-group">
+                    <label>Gestión de Tallas</label>
+                    <div id="tallas-container">
+                        {% if tallas and tallas|length > 0 %}
+                            {% for talla in tallas %}
+                            <div class="talla-row" style="display: flex; gap: 1rem; margin-bottom: 0.5rem; align-items: center;">
+                                <input type="hidden" name="tallas_ids[]" value="{{ talla.id }}">
+                                <select name="tallas[]" style="flex: 1; padding: 0.5rem;">
+                                    <option value="Talla Única" {% if talla.talla == 'Talla Única' %}selected{% endif %}>Talla Única</option>
+                                    <option value="S" {% if talla.talla == 'S' %}selected{% endif %}>S</option>
+                                    <option value="M" {% if talla.talla == 'M' %}selected{% endif %}>M</option>
+                                    <option value="L" {% if talla.talla == 'L' %}selected{% endif %}>L</option>
+                                    <option value="XL" {% if talla.talla == 'XL' %}selected{% endif %}>XL</option>
+                                </select>
+                                <input type="number" name="stocks[]" value="{{ talla.stock }}" min="0" placeholder="Stock" style="width: 100px; padding: 0.5rem;">
+                                <button type="button" class="btn-eliminar-talla" style="padding: 0.5rem 1rem; background: #ff0000; color: #fff; border: none; cursor: pointer;">Eliminar</button>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="talla-row" style="display: flex; gap: 1rem; margin-bottom: 0.5rem; align-items: center;">
+                                <input type="hidden" name="tallas_ids[]" value="">
+                                <select name="tallas[]" style="flex: 1; padding: 0.5rem;">
+                                    <option value="Talla Única" selected>Talla Única</option>
+                                    <option value="S">S</option>
+                                    <option value="M">M</option>
+                                    <option value="L">L</option>
+                                    <option value="XL">XL</option>
+                                </select>
+                                <input type="number" name="stocks[]" value="{{ producto.stock if producto else 0 }}" min="0" placeholder="Stock" style="width: 100px; padding: 0.5rem;">
+                                <button type="button" class="btn-eliminar-talla" style="padding: 0.5rem 1rem; background: #ff0000; color: #fff; border: none; cursor: pointer;">Eliminar</button>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <button type="button" id="btn-agregar-talla" style="margin-top: 0.5rem; padding: 0.5rem 1rem; background: #000; color: #fff; border: none; cursor: pointer;">+ Agregar Talla</button>
+                </div>
+                
+                <script>
+                    document.getElementById('btn-agregar-talla').addEventListener('click', function() {
+                        const container = document.getElementById('tallas-container');
+                        const nuevaTalla = document.createElement('div');
+                        nuevaTalla.className = 'talla-row';
+                        nuevaTalla.style.cssText = 'display: flex; gap: 1rem; margin-bottom: 0.5rem; align-items: center;';
+                        nuevaTalla.innerHTML = `
+                            <input type="hidden" name="tallas_ids[]" value="">
+                            <select name="tallas[]" style="flex: 1; padding: 0.5rem;">
+                                <option value="Talla Única">Talla Única</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                            </select>
+                            <input type="number" name="stocks[]" value="0" min="0" placeholder="Stock" style="width: 100px; padding: 0.5rem;">
+                            <button type="button" class="btn-eliminar-talla" style="padding: 0.5rem 1rem; background: #ff0000; color: #fff; border: none; cursor: pointer;">Eliminar</button>
+                        `;
+                        container.appendChild(nuevaTalla);
+                    });
+                    
+                    document.addEventListener('click', function(e) {
+                        if (e.target.classList.contains('btn-eliminar-talla')) {
+                                if (document.querySelectorAll('.talla-row').length > 1) {
+                                    e.target.closest('.talla-row').remove();
+                                } else {
+                                    if (typeof notificarAdvertencia === 'function') {
+                                        notificarAdvertencia('Debe haber al menos una talla');
+                                    } else {
+                                        alert('Debe haber al menos una talla');
+                                    }
+                                }
+                        }
+                    });
+                </script>
+
+                <div class="form-group">
+                    <label for="categoria">Categoría</label>
+                    <select id="categoria" name="categoria">
+                        <option value="ropa" {% if producto and producto.categoria == 'ropa' %}selected{% endif %}>Ropa</option>
+                        <option value="accesorios" {% if producto and producto.categoria == 'accesorios' %}selected{% endif %}>Accesorios</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="imagen">Imagen</label>
+                    {% if producto and producto.imagen %}
+                    <div class="current-image">
+                        <p>Imagen actual:</p>
+                        <img src="{{ url_for('static', filename=producto.imagen.replace('/static/', '')) if producto.imagen.startswith('/static/') else url_for('static', filename=producto.imagen) }}" alt="Imagen actual" style="max-width: 200px; margin-top: 10px;">
+                    </div>
+                    {% endif %}
+                    <input type="file" id="imagen" name="imagen" accept="image/*">
+                    <small>Formatos permitidos: PNG, JPG, JPEG, GIF, WEBP (máx. 16MB)</small>
+                </div>
+
+                {% if producto %}
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="activo" {% if producto.activo %}checked{% endif %}>
+                        Producto activo
+                    </label>
+                </div>
+                {% endif %}
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">{% if producto %}Actualizar{% else %}Agregar{% endif %} Producto</button>
+                    <a href="{{ url_for('admin_productos') }}" class="btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

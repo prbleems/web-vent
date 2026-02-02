@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Cupones - VENT</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Gestión de Cupones</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_index') }}" class="btn-admin">← Panel Principal</a>
+                <a href="{{ url_for('admin_agregar_cupon') }}" class="btn-primary">+ Agregar Cupón</a>
+            </div>
+        </header>
+
+        <div class="admin-section">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Código</th>
+                        <th>Tipo</th>
+                        <th>Valor</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Uso Máximo</th>
+                        <th>Usos Actuales</th>
+                        <th>Monto Mínimo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cupon in cupones %}
+                    <tr>
+                        <td>{{ cupon.id }}</td>
+                        <td><strong>{{ cupon.codigo }}</strong></td>
+                        <td>{{ 'Porcentaje' if cupon.tipo_descuento == 'porcentaje' else 'Fijo' }}</td>
+                        <td>
+                            {% if cupon.tipo_descuento == 'porcentaje' %}
+                                {{ cupon.valor_descuento }}%
+                            {% else %}
+                                {{ cupon.valor_descuento|formato_precio_clp }}
+                            {% endif %}
+                        </td>
+                        <td>{{ cupon.fecha_inicio or 'Sin límite' }}</td>
+                        <td>{{ cupon.fecha_fin or 'Sin límite' }}</td>
+                        <td>{{ cupon.uso_maximo if cupon.uso_maximo > 0 else 'Ilimitado' }}</td>
+                        <td>{{ cupon.usos_actuales }}</td>
+                        <td>{{ cupon.monto_minimo|formato_precio_clp if cupon.monto_minimo > 0 else 'Sin mínimo' }}</td>
+                        <td>
+                            <span class="badge badge-{{ 'activo' if cupon.activo else 'inactivo' }}">
+                                {{ 'Activo' if cupon.activo else 'Inactivo' }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_editar_cupon', id=cupon.id) }}" class="btn-edit">Editar</a>
+                            <button onclick="eliminarCupon({{ cupon.id }})" class="btn-delete">Eliminar</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="11" style="text-align: center; padding: 2rem;">
+                            No hay cupones registrados. <a href="{{ url_for('admin_agregar_cupon') }}">Crear uno</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function eliminarCupon(id) {
+            if (!confirm('¿Estás seguro de que quieres eliminar este cupón?')) {
+                return;
+            }
+            
+            fetch('/admin/cupones/eliminar/' + id, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof notificarExito === 'function') {
+                        notificarExito('Cupón eliminado correctamente');
+                    }
+                    setTimeout(() => window.location.reload(), 500);
+                } else {
+                    if (typeof notificarError === 'function') {
+                        notificarError('Error al eliminar el cupón');
+                    } else {
+                        alert('Error al eliminar el cupón');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                if (typeof notificarError === 'function') {
+                    notificarError('Error al eliminar el cupón');
+                } else {
+                    alert('Error al eliminar el cupón');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

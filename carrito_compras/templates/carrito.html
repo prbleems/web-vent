@@ -3,16 +3,728 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito de Compras</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Carro de Compras - Vent</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/carrito.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        .envio-form {
+            background-color: #fff;
+            padding: 2rem;
+            border: 2px solid #000;
+        }
+        .envio-form h3 {
+            font-family: "Courier New", Courier, monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-family: "Courier New", Courier, monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #000;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .radio-group {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .radio-option input[type="radio"] {
+            width: auto;
+        }
+        .envio-direccion {
+            display: none;
+        }
+        .envio-direccion.show {
+            display: block;
+        }
+        .btn-calcular {
+            background-color: #000;
+            color: #fff;
+            border: 2px solid #000;
+            padding: 0.8rem 2rem;
+            font-family: "Courier New", Courier, monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-calcular:hover {
+            background-color: #fff;
+            color: #000;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Carrito de Compras</h1>
-    <div id="carrito">
-        <!-- Productos agregados al carrito -->
+    <div class="carrito-container">
+        <div class="carrito-header">
+            <a href="{{ url_for('index') }}" class="logo-link">
+                <img src="{{ url_for('static', filename='img/vent3d.gif') }}" alt="Logo" class="logo-img">
+            </a>
+            <h1 class="carrito-title"> </h1>
+            <a href="{{ url_for('tienda') }}" class="volver-link">← Volver a la tienda</a>
+        </div>
+
+        {% if carrito and carrito|length > 0 %}
+        <div class="carrito-content">
+            <div class="carrito-left">
+                <!-- Lista de productos -->
+                <div class="productos-lista">
+                    {% for item in carrito %}
+                    <div class="producto-item">
+                        <div class="producto-imagen">
+                            {% set img_url = url_for('static', filename=item.imagen.replace('/static/', '')) if item.imagen.startswith('/static/') else item.imagen %}
+                            {% set fallback_img = url_for('static', filename='img/prueba.galeria.png') %}
+                            <img src="{{ img_url }}" 
+                                 alt="{{ item.nombre }}" 
+                                 data-fallback="{{ fallback_img }}">
+                        </div>
+                            <div class="producto-info">
+                                <h3 class="producto-nombre">{{ item.nombre }}</h3>
+                                {% if item.get('talla') %}
+                                <p class="producto-talla" style="font-size: 0.9rem; color: #666; margin: 0.3rem 0;">Talla: {{ item.talla }}</p>
+                                {% endif %}
+                                <p class="producto-precio">{{ item.precio|formato_precio_clp }}</p>
+                            </div>
+                        <div class="producto-cantidad">
+                            <span class="cantidad-label">Cantidad:</span>
+                            <div class="cantidad-controls">
+                                <button class="cantidad-btn" data-producto-id="{{ item.id }}" data-talla="{{ item.talla or 'Talla Única' }}" data-cambio="-1">-</button>
+                                <span class="cantidad-valor">{{ item.cantidad }}</span>
+                                <button class="cantidad-btn" data-producto-id="{{ item.id }}" data-talla="{{ item.talla or 'Talla Única' }}" data-cambio="1">+</button>
+                            </div>
+                        </div>
+                        <div class="producto-subtotal">
+                            <p class="subtotal-label">Subtotal</p>
+                            <p class="subtotal-valor">{{ (item.precio * item.cantidad)|formato_precio_clp }}</p>
+                        </div>
+                        <div class="producto-eliminar">
+                            <button class="eliminar-btn" data-producto-id="{{ item.id }}" data-talla="{{ item.talla or 'Talla Única' }}">×</button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Resumen de compra -->
+                <div class="carrito-resumen">
+                    <div class="resumen-header">
+                        <h2>Resumen de Compra</h2>
+                    </div>
+                    <div class="resumen-detalle">
+                        <div class="resumen-linea">
+                            <span>Subtotal:</span>
+                            <span id="subtotalDisplay">{{ total_subtotal|formato_precio_clp }}</span>
+                        </div>
+                        {% if cupon_info and descuento > 0 %}
+                        <div class="resumen-linea" style="color: #28a745;">
+                            <span>Descuento ({{ cupon_info.codigo }}):</span>
+                            <span id="descuentoDisplay">-{{ descuento|formato_precio_clp }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="resumen-linea">
+                            <span>Envío:</span>
+                            <span id="costoEnvio">{{ costo_envio|formato_precio_clp }}</span>
+                        </div>
+                        <div class="resumen-total">
+                            <span>Total:</span>
+                            <span id="totalFinal">{{ total|formato_precio_clp }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Campo de cupón -->
+                    <div class="cupon-section" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #ddd;">
+                        {% if cupon_info %}
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <span style="font-family: 'Courier New', Courier, monospace; font-size: 0.9rem;">
+                                Cupón aplicado: <strong>{{ cupon_info.codigo }}</strong>
+                            </span>
+                            <button type="button" onclick="removerCupon()" style="background: none; border: none; color: #dc3545; cursor: pointer; font-family: 'Courier New', Courier, monospace; text-decoration: underline; font-size: 0.85rem;">
+                                Remover
+                            </button>
+                        </div>
+                        {% else %}
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="codigoCupon" placeholder="Código de cupón" 
+                                   style="flex: 1; padding: 0.6rem; border: 2px solid #000; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem;">
+                            <button type="button" onclick="aplicarCupon()" 
+                                    style="padding: 0.6rem 1.2rem; background: #000; color: #fff; border: 2px solid #000; font-family: 'Courier New', Courier, monospace; text-transform: uppercase; cursor: pointer; font-size: 0.85rem;">
+                                Aplicar
+                            </button>
+                        </div>
+                        <div id="cuponMensaje" style="margin-top: 0.5rem; font-size: 0.85rem; font-family: 'Courier New', Courier, monospace;"></div>
+                        {% endif %}
+                    </div>
+                    <div class="metodos-pago">
+                        <h3 style="font-family: 'Courier New', Courier, monospace; text-transform: uppercase; margin-bottom: 1rem; font-size: 1rem;">Método de Pago</h3>
+                        <div class="pago-opciones" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.8rem; border: 2px solid #000; font-family: 'Courier New', Courier, monospace;">
+                                <input type="radio" name="metodo_pago" value="webpay" checked onchange="actualizarBotonPago()">
+                                <span>Webpay Plus</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.8rem; border: 2px solid #000; font-family: 'Courier New', Courier, monospace;">
+                                <input type="radio" name="metodo_pago" value="mercadopago" onchange="actualizarBotonPago()">
+                                <span>Mercado Pago</span>
+                            </label>
+                        </div>
+                        <form action="" method="POST" class="pago-form" id="formPago">
+                            <button type="submit" class="btn-pagar" id="btnPagar">
+                                Pagar con Webpay Plus
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de datos de contacto y envío -->
+            <div class="envio-form">
+                <h3>DATOS DE CONTACTO Y ENVÍO</h3>
+                <form id="formEnvio">
+                    <div class="form-group">
+                        <label for="nombre">NOMBRE COMPLETO *</label>
+                        <input type="text" id="nombre" name="nombre" value="{{ datos_envio.nombre or '' }}" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">EMAIL *</label>
+                            <input type="email" id="email" name="email" value="{{ datos_envio.email or '' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="telefono">TELÉFONO *</label>
+                            <input type="tel" id="telefono" name="telefono" value="{{ datos_envio.telefono or '' }}" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>TIPO DE ENTREGA *</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="retiro" name="tipo_envio" value="retiro" 
+                                       {% if datos_envio.tipo_envio == 'retiro' %}checked{% endif %} onchange="toggleDireccion()">
+                                <label for="retiro" style="margin: 0; font-weight: normal; text-transform: none;">RETIRO EN TIENDA (GRATIS)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="envio" name="tipo_envio" value="envio" 
+                                       {% if datos_envio.tipo_envio == 'envio' %}checked{% endif %} onchange="toggleDireccion()">
+                                <label for="envio" style="margin: 0; font-weight: normal; text-transform: none;">ENVÍO A DOMICILIO</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="envio-direccion {% if datos_envio.tipo_envio == 'envio' %}show{% endif %}" id="direccionFields">
+                        <div class="form-group">
+                            <label for="direccion">DIRECCIÓN *</label>
+                            <input type="text" id="direccion" name="direccion" value="{{ datos_envio.direccion or '' }}">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="comuna">COMUNA *</label>
+                                <input type="text" id="comuna" name="comuna" value="{{ datos_envio.comuna or '' }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="region">REGIÓN *</label>
+                                <select id="region" name="region">
+                                    <option value="">Selecciona una región</option>
+                                    <option value="Región Metropolitana" {% if datos_envio.region == 'Región Metropolitana' %}selected{% endif %}>Región Metropolitana</option>
+                                    <option value="Valparaíso" {% if datos_envio.region == 'Valparaíso' %}selected{% endif %}>Valparaíso</option>
+                                    <option value="Biobío" {% if datos_envio.region == 'Biobío' %}selected{% endif %}>Biobío</option>
+                                    <option value="Araucanía" {% if datos_envio.region == 'Araucanía' %}selected{% endif %}>Araucanía</option>
+                                    <option value="Los Lagos" {% if datos_envio.region == 'Los Lagos' %}selected{% endif %}>Los Lagos</option>
+                                    <option value="Otra" {% if datos_envio.region == 'Otra' %}selected{% endif %}>Otra</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-calcular" onclick="calcularEnvio()">CALCULAR ENVÍO</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="carrito-vacio">
+            <p class="mensaje-vacio">Tu carrito está vacío</p>
+            <a href="{{ url_for('tienda') }}" class="btn-ir-tienda">Ir a la tienda</a>
+        </div>
+        {% endif %}
     </div>
-    <form action="{{ url_for('pago') }}" method="POST">
-        <button type="submit">Pagar con PAYKU</button>
-    </form>
+
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/carrito-persistencia.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/carrito.js') }}"></script>
+    <script>
+        // Variables globales (valores desde servidor)
+        var totalSubtotal = parseFloat('{{ total_subtotal }}') || 0;
+        var descuentoActual = parseFloat('{{ descuento }}') || 0;
+        var carritoServidor = JSON.parse('{{ carrito|tojson|safe }}');
+        
+        function toggleDireccion() {
+            const radioChecked = document.querySelector('input[name="tipo_envio"]:checked');
+            if (!radioChecked) return;
+            
+            const tipoEnvio = radioChecked.value;
+            const direccionFields = document.getElementById('direccionFields');
+            if (!direccionFields) return;
+            
+            if (tipoEnvio === 'envio') {
+                direccionFields.classList.add('show');
+                direccionFields.querySelectorAll('input, select').forEach(function(input) {
+                    if (input.id !== 'region') input.required = true;
+                });
+            } else {
+                direccionFields.classList.remove('show');
+                direccionFields.querySelectorAll('input, select').forEach(function(input) {
+                    input.required = false;
+                });
+            }
+        }
+
+        function calcularEnvio() {
+            const form = document.getElementById('formEnvio');
+            if (!form) return;
+            
+            // Obtener el tipo de envío seleccionado
+            const tipoEnvioRadio = document.querySelector('input[name="tipo_envio"]:checked');
+            if (!tipoEnvioRadio) {
+                if (typeof notificarAdvertencia === 'function') {
+                    notificarAdvertencia('Por favor selecciona un tipo de entrega');
+                } else {
+                    alert('Por favor selecciona un tipo de entrega');
+                }
+                return;
+            }
+            
+            const tipoEnvio = tipoEnvioRadio.value;
+            
+            // Validar datos requeridos según el tipo de envío
+            if (tipoEnvio === 'envio') {
+                const comuna = document.getElementById('comuna').value.trim();
+                const region = document.getElementById('region').value.trim();
+                
+                if (!comuna || !region) {
+                    if (typeof notificarAdvertencia === 'function') {
+                        notificarAdvertencia('Por favor completa la comuna y región para calcular el envío');
+                    } else {
+                        alert('Por favor completa la comuna y región para calcular el envío');
+                    }
+                    return;
+                }
+            }
+            
+            // Preparar datos para enviar
+            const formData = new FormData(form);
+            const data = {
+                tipo_envio: tipoEnvio,
+                nombre: document.getElementById('nombre').value.trim() || '',
+                email: document.getElementById('email').value.trim() || '',
+                telefono: document.getElementById('telefono').value.trim() || '',
+                direccion: document.getElementById('direccion') ? document.getElementById('direccion').value.trim() : '',
+                comuna: document.getElementById('comuna') ? document.getElementById('comuna').value.trim() : '',
+                region: document.getElementById('region') ? document.getElementById('region').value.trim() : ''
+            };
+            
+            fetch('{{ url_for("guardar_datos_envio") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(function(response) {
+                // Intentar parsear la respuesta como JSON
+                return response.text().then(function(text) {
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('Error al parsear JSON:', text);
+                        throw new Error('Error en la respuesta del servidor: ' + response.status);
+                    }
+                });
+            })
+            .then(function(result) {
+                if (result && result.success) {
+                    // Actualizar costo de envío y total
+                    const costoEnvio = parseFloat(result.costo_envio) || 0;
+                    const total = totalSubtotal - descuentoActual + costoEnvio;
+                    
+                    // Formatear precios
+                    const costoEnvioElement = document.getElementById('costoEnvio');
+                    const totalFinalElement = document.getElementById('totalFinal');
+                    
+                    if (costoEnvioElement) {
+                        costoEnvioElement.textContent = formatPrice(costoEnvio);
+                    }
+                    if (totalFinalElement) {
+                        totalFinalElement.textContent = formatPrice(total < 0 ? 0 : total);
+                    }
+                    
+                    if (typeof notificarExito === 'function') {
+                        notificarExito('Datos guardados correctamente');
+                    } else {
+                        alert('Datos guardados correctamente');
+                    }
+                } else {
+                    // Mostrar error si hay
+                    var errorMsg = (result && result.error) ? result.error : 'Error al guardar los datos';
+                    console.error('Error del servidor:', errorMsg, result);
+                    if (typeof notificarError === 'function') {
+                        notificarError('Error: ' + errorMsg);
+                    } else {
+                        alert('Error: ' + errorMsg);
+                    }
+                }
+            })
+            .catch(function(error) {
+                console.error('Error en calcularEnvio:', error);
+                var errorMsg = 'Error al guardar los datos. Por favor, intenta nuevamente.';
+                if (error.message) {
+                    errorMsg += ' (' + error.message + ')';
+                }
+                if (typeof notificarError === 'function') {
+                    notificarError(errorMsg);
+                } else {
+                    alert(errorMsg);
+                }
+            });
+        }
+
+        function formatPrice(price) {
+            return '$' + price.toLocaleString('es-CL', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        }
+
+        function actualizarBotonPago() {
+            const radioChecked = document.querySelector('input[name="metodo_pago"]:checked');
+            if (!radioChecked) return;
+            
+            const metodoSeleccionado = radioChecked.value;
+            const btnPagar = document.getElementById('btnPagar');
+            if (!btnPagar) return;
+            
+            if (metodoSeleccionado === 'webpay') {
+                btnPagar.textContent = 'Pagar con Webpay Plus';
+            } else if (metodoSeleccionado === 'mercadopago') {
+                btnPagar.textContent = 'Pagar con Mercado Pago';
+            }
+        }
+
+        // Inicializar todo al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sincronizar carrito desde localStorage
+            const carritoLocal = typeof cargarCarritoLocalStorage === 'function' ? cargarCarritoLocalStorage() : null;
+            
+            if (carritoLocal && carritoLocal.length > 0 && (!carritoServidor || carritoServidor.length === 0)) {
+                console.log('Sincronizando carrito desde localStorage...');
+                if (typeof sincronizarCarritoConServidor === 'function') {
+                    sincronizarCarritoConServidor();
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                }
+            } else if (carritoServidor && carritoServidor.length > 0) {
+                if (typeof guardarCarritoLocalStorage === 'function') {
+                    guardarCarritoLocalStorage(carritoServidor);
+                }
+            }
+            
+            // Inicializar funciones
+            actualizarBotonPago();
+            toggleDireccion();
+            
+            // Agregar event listeners a los botones de cantidad
+            document.querySelectorAll('.cantidad-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const productoId = parseInt(this.getAttribute('data-producto-id'));
+                    const talla = this.getAttribute('data-talla');
+                    const cambio = parseInt(this.getAttribute('data-cambio'));
+                    actualizarCantidad(productoId, talla, cambio);
+                });
+            });
+            
+            // Agregar event listeners a los botones de eliminar
+            document.querySelectorAll('.eliminar-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const productoId = parseInt(this.getAttribute('data-producto-id'));
+                    const talla = this.getAttribute('data-talla');
+                    eliminarProducto(productoId, talla);
+                });
+            });
+            
+            // Manejar errores de carga de imágenes
+            document.querySelectorAll('.producto-imagen img').forEach(function(img) {
+                img.addEventListener('error', function() {
+                    const fallback = this.getAttribute('data-fallback');
+                    if (fallback) {
+                        this.src = fallback;
+                    }
+                });
+            });
+            
+            // Validar formulario antes de enviar
+            const formPago = document.getElementById('formPago');
+            if (formPago) {
+                formPago.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const nombre = document.getElementById('nombre').value;
+                    const email = document.getElementById('email').value;
+                    const telefono = document.getElementById('telefono').value;
+                    const radioChecked = document.querySelector('input[name="tipo_envio"]:checked');
+                    
+                    if (!nombre || !email || !telefono) {
+                        if (typeof notificarAdvertencia === 'function') {
+                            notificarAdvertencia('Por favor completa todos los datos de contacto antes de pagar');
+                        } else {
+                            alert('Por favor completa todos los datos de contacto antes de pagar');
+                        }
+                        return false;
+                    }
+                    
+                    if (!radioChecked) {
+                        if (typeof notificarAdvertencia === 'function') {
+                            notificarAdvertencia('Por favor selecciona un tipo de entrega');
+                        } else {
+                            alert('Por favor selecciona un tipo de entrega');
+                        }
+                        return false;
+                    }
+                    
+                    const tipoEnvio = radioChecked.value;
+                    const direccion = document.getElementById('direccion').value;
+                    const comuna = document.getElementById('comuna').value;
+                    const region = document.getElementById('region').value;
+                    
+                    if (tipoEnvio === 'envio' && (!direccion || !comuna || !region)) {
+                        if (typeof notificarAdvertencia === 'function') {
+                            notificarAdvertencia('Por favor completa todos los datos de envío antes de pagar');
+                        } else {
+                            alert('Por favor completa todos los datos de envío antes de pagar');
+                        }
+                        return false;
+                    }
+                    
+                    // Guardar datos de envío primero
+                    const formData = new FormData(document.getElementById('formEnvio'));
+                    const data = Object.fromEntries(formData);
+                    
+                    fetch('{{ url_for("guardar_datos_envio") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(result) {
+                        if (result.success) {
+                            // Actualizar costo de envío en la pantalla
+                            const costoEnvio = parseFloat(result.costo_envio) || 0;
+                            const total = totalSubtotal - descuentoActual + costoEnvio;
+                            
+                            document.getElementById('costoEnvio').textContent = formatPrice(costoEnvio);
+                            document.getElementById('totalFinal').textContent = formatPrice(total < 0 ? 0 : total);
+                            
+                            // Procesar el pago según el método seleccionado
+                            const metodoPagoRadio = document.querySelector('input[name="metodo_pago"]:checked');
+                            if (!metodoPagoRadio) {
+                                if (typeof notificarError === 'function') {
+                                    notificarError('Por favor selecciona un método de pago');
+                                } else {
+                                    alert('Por favor selecciona un método de pago');
+                                }
+                                return;
+                            }
+                            const metodoPago = metodoPagoRadio.value;
+                            
+                            if (metodoPago === 'webpay') {
+                                fetch('{{ url_for("iniciar_pago_webpay") }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                })
+                                .then(function(response) {
+                                    return response.json();
+                                })
+                                .then(function(data) {
+                                    if (data.success && data.url && data.token) {
+                                        console.log('Redirigiendo a Webpay con token:', data.token);
+                                        
+                                        const form = document.createElement('form');
+                                        form.method = 'POST';
+                                        form.action = data.url;
+                                        form.style.display = 'none';
+                                        
+                                        const tokenInput = document.createElement('input');
+                                        tokenInput.type = 'hidden';
+                                        tokenInput.name = 'token_ws';
+                                        tokenInput.value = data.token;
+                                        form.appendChild(tokenInput);
+                                        
+                                        document.body.appendChild(form);
+                                        form.submit();
+                                    } else {
+                                        var errorMsg = data.error || 'Error desconocido';
+                                        if (typeof notificarError === 'function') {
+                                            notificarError('Error al iniciar el pago: ' + errorMsg);
+                                        } else {
+                                            alert('Error al iniciar el pago: ' + errorMsg);
+                                        }
+                                    }
+                                })
+                                .catch(function(error) {
+                                    console.error('Error al comunicarse con Webpay:', error);
+                                    if (typeof notificarError === 'function') {
+                                        notificarError('Error al iniciar el pago con Webpay. Por favor, intenta nuevamente.');
+                                    } else {
+                                        alert('Error al iniciar el pago con Webpay. Por favor, intenta nuevamente.');
+                                    }
+                                });
+                            } else if (metodoPago === 'mercadopago') {
+                                fetch('{{ url_for("iniciar_pago_mercadopago") }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                })
+                                .then(function(response) {
+                                    if (response.redirected) {
+                                        window.location.href = response.url;
+                                        return null;
+                                    } else {
+                                        return response.json();
+                                    }
+                                })
+                                .then(function(data) {
+                                    if (data && data.success === true && data.url) {
+                                        window.location.href = data.url;
+                                    } else if (data && data.success === false) {
+                                        var errorMsg = data.error || 'Error desconocido';
+                                        if (typeof notificarError === 'function') {
+                                            notificarError('Error al iniciar el pago: ' + errorMsg);
+                                        } else {
+                                            alert('Error al iniciar el pago: ' + errorMsg);
+                                        }
+                                    }
+                                })
+                                .catch(function(error) {
+                                    console.error('Error:', error);
+                                    if (typeof notificarError === 'function') {
+                                        notificarError('Error al iniciar el pago con Mercado Pago');
+                                    } else {
+                                        alert('Error al iniciar el pago con Mercado Pago');
+                                    }
+                                });
+                            }
+                        } else {
+                            var errorMsg = result.error || 'Error desconocido';
+                            if (typeof notificarError === 'function') {
+                                notificarError('Error al guardar los datos: ' + errorMsg);
+                            } else {
+                                alert('Error al guardar los datos: ' + errorMsg);
+                            }
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error:', error);
+                        if (typeof notificarError === 'function') {
+                            notificarError('Error al guardar los datos de envío');
+                        } else {
+                            alert('Error al guardar los datos de envío');
+                        }
+                    });
+                });
+            }
+        });
+        
+        function aplicarCupon() {
+            const codigo = document.getElementById('codigoCupon').value.trim().toUpperCase();
+            const mensaje = document.getElementById('cuponMensaje');
+            
+            if (!codigo) {
+                mensaje.textContent = 'Por favor ingresa un código de cupón';
+                mensaje.style.color = '#dc3545';
+                return;
+            }
+            
+            fetch('/api/validar_cupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    codigo: codigo,
+                    subtotal: totalSubtotal
+                })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(result) {
+                if (result.success) {
+                    mensaje.textContent = 'Cupón aplicado correctamente';
+                    mensaje.style.color = '#28a745';
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 500);
+                } else {
+                    mensaje.textContent = result.error || 'Error al aplicar el cupón';
+                    mensaje.style.color = '#dc3545';
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                mensaje.textContent = 'Error al validar el cupón';
+                mensaje.style.color = '#dc3545';
+            });
+        }
+        
+        function removerCupon() {
+            fetch('/api/remover_cupon', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(result) {
+                if (result.success) {
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>

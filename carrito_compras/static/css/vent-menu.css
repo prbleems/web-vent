@@ -1,0 +1,216 @@
+/* Menú principal VENT - Estilo Supreme original (fondo blanco, texto negro) */
+
+.vent-homepage {
+    background-color: #fff;
+    color: #000;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    font-family: "Courier New", Courier, monospace;
+    text-align: center;
+    position: relative;
+}
+
+/* Logo con GIF - Centrado arriba */
+.vent-logo-container {
+    margin-bottom: 0.5rem;
+    margin-top: 0;
+}
+
+.vent-logo-gif {
+    max-width: 180px;
+    width: auto;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Fecha y hora - Centrada debajo del logo, ligeramente a la derecha */
+.vent-datetime {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.8rem;
+    color: #000;
+    margin: 0.3rem 0 1.5rem 0;
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    position: relative;
+    left: 8px; /* Ligeramente a la derecha como Supreme */
+}
+
+/* Lista de navegación vertical - Alineada ligeramente a la izquierda del centro */
+.vent-nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.8rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    text-align: left;
+    width: auto;
+    position: relative;
+    left: -12px; /* Ligeramente a la izquierda del centro exacto */
+}
+
+.vent-nav-list li {
+    margin: 0;
+    padding: 0;
+}
+
+.vent-nav-list a {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+    color: #000;
+    text-decoration: none;
+    text-transform: lowercase;
+    letter-spacing: 0.3px;
+    transition: all 0.2s ease;
+    display: block;
+    padding: 0.3rem 0.8rem;
+    line-height: 1.4;
+    margin: 0.1rem 0;
+    border-radius: 0;
+}
+
+.vent-nav-list a:hover {
+    background-color: #000;
+    color: #fff;
+    padding-left: 1rem;
+}
+
+/* Redes sociales - Estilo Supreme con cuadros negros */
+.vent-social {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 1.2rem 0;
+    flex-wrap: wrap;
+}
+
+.vent-social-icon {
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #000;
+    background-color: #fff;
+    transition: all 0.2s;
+    padding: 3px;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+.vent-social-icon:hover {
+    opacity: 0.7;
+}
+
+.vent-social-icon:hover svg {
+    stroke: #000;
+    fill: #000;
+}
+
+.vent-social-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: #000;
+    stroke: #000;
+    display: block;
+    color: #000;
+}
+
+/* Footer - Estilo Supreme exacto */
+.vent-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.7rem;
+    background-color: #fff;
+    border-top: none;
+}
+
+.vent-footer-left {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+}
+
+.vent-footer-left a {
+    color: #000;
+    text-decoration: none;
+    text-transform: lowercase;
+    letter-spacing: 0.1px;
+    transition: color 0.2s;
+    font-size: 0.7rem;
+    margin-right: 0.3rem;
+}
+
+.vent-footer-left a:last-child {
+    margin-right: 0;
+}
+
+.vent-footer-left a:hover {
+    color: #666;
+}
+
+.vent-footer-right {
+    color: #000;
+    text-transform: lowercase;
+    letter-spacing: 0.1px;
+    font-size: 0.7rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .vent-logo-gif {
+        max-width: 150px;
+    }
+    
+    .vent-datetime {
+        font-size: 0.75rem;
+        left: 5px;
+    }
+    
+    .vent-nav-list {
+        left: -8px;
+    }
+    
+    .vent-nav-list a {
+        font-size: 0.85rem;
+    }
+    
+    .vent-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        align-items: flex-start;
+    }
+    
+    .vent-footer-left {
+        display: block;
+    }
+    
+    .vent-footer-left a {
+        display: inline;
+        margin-right: 0.3rem;
+    }
+    
+    .vent-homepage {
+        padding: 1.5rem 1rem 100px 1rem;
+    }
+}
+
+/* Ocultar elementos no necesarios en homepage */
+.vent-homepage .loader-container {
+    display: none;
+}

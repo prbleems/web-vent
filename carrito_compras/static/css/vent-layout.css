@@ -1,0 +1,222 @@
+/* Estilos adicionales VENT - Espaciado y layout */
+
+/* Espaciado mejorado */
+.vent-spacing {
+    padding: 6rem 2rem;
+}
+
+/* Secciones con mucho espacio en blanco */
+.vent-section {
+    padding: 8rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Títulos - Más grandes y bold */
+.vent-title {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    color: #000;
+    margin: 3rem 0;
+    line-height: 1.1;
+}
+
+/* Subtítulos */
+.vent-subtitle {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #000;
+    margin: 2rem 0;
+    font-weight: bold;
+}
+
+/* Grid de productos - Más espaciado */
+.vent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 4rem;
+    padding: 4rem 0;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Producto individual */
+.vent-product {
+    background-color: #fff;
+    border: none;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.4s ease;
+}
+
+.vent-product:hover {
+    transform: scale(1.02);
+}
+
+.vent-product-image {
+    width: 100%;
+    height: 500px;
+    object-fit: cover;
+    background-color: #f5f5f5;
+    margin-bottom: 1.5rem;
+}
+
+.vent-product-info {
+    text-align: left;
+    padding: 0 1rem;
+}
+
+.vent-product-name {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1.3rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #000;
+    margin: 0 0 0.5rem 0;
+}
+
+.vent-product-price {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1.1rem;
+    color: #000;
+    margin: 0;
+}
+
+/* Navegación minimalista */
+.vent-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    border-bottom: 2px solid #000;
+    padding: 1.5rem 3rem;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.vent-nav-logo {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #000;
+    text-decoration: none;
+}
+
+.vent-nav-menu {
+    display: flex;
+    gap: 3rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.vent-nav-menu a {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #000;
+    text-decoration: none;
+    transition: all 0.3s;
+    padding: 0.5rem 0;
+    border-bottom: 2px solid transparent;
+}
+
+.vent-nav-menu a:hover {
+    border-bottom: 2px solid #000;
+}
+
+/* Footer minimalista */
+.vent-footer {
+    border-top: 2px solid #000;
+    padding: 4rem 2rem;
+    margin-top: 6rem;
+    text-align: center;
+}
+
+.vent-footer-text {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #000;
+    margin: 0.5rem 0;
+}
+
+/* Responsive mejorado */
+@media (max-width: 1200px) {
+    .vent-title {
+        font-size: 4rem;
+    }
+    
+    .vent-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .vent-title {
+        font-size: 2.5rem;
+        letter-spacing: 3px;
+    }
+    
+    .vent-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 2rem 0;
+    }
+    
+    .vent-section {
+        padding: 4rem 1rem;
+    }
+    
+    .vent-nav {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .vent-nav-menu {
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Animaciones sutiles */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Efecto de hover más sutil */
+.vent-hover {
+    transition: all 0.3s ease;
+}
+
+.vent-hover:hover {
+    opacity: 0.8;
+}

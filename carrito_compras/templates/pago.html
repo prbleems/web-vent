@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago - Vent</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="{{ url_for('static', filename='js/notificaciones.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/carrito-persistencia.js') }}"></script>
+    <style>
+        .pago-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: "Courier New", Courier, monospace;
+        }
+        .pago-mensaje {
+            text-align: center;
+            padding: 40px;
+            max-width: 600px;
+        }
+        .pago-exitoso {
+            color: #000;
+            border: 2px solid #000;
+            padding: 30px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .pago-error {
+            color: #000;
+            border: 2px solid #000;
+            padding: 30px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .btn-volver {
+            background-color: #000;
+            color: #fff;
+            padding: 15px 30px;
+            text-decoration: none;
+            font-family: "Courier New", Courier, monospace;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        .btn-volver:hover {
+            background-color: #444;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="pago-container">
+        <div class="pago-mensaje">
+            {% if estado == 'aprobado' %}
+                <div class="pago-exitoso">
+                    <h1>✓ Pago Aprobado</h1>
+                    <p>Tu pago ha sido procesado exitosamente.</p>
+                    {% if session.get('numero_pedido') %}
+                    <p style="font-size: 1.2rem; font-weight: bold; margin: 20px 0;">
+                        Número de Pedido: {{ session.get('numero_pedido') }}
+                    </p>
+                    <p>Hemos enviado la boleta a tu correo electrónico.</p>
+                    {% endif %}
+                    <p>Gracias por tu compra en VENT.</p>
+                    <a href="{{ url_for('index') }}" class="btn-volver" onclick="if(typeof limpiarCarritoLocalStorage === 'function') limpiarCarritoLocalStorage();">Volver al inicio</a>
+                </div>
+            {% elif estado == 'rechazado' %}
+                <div class="pago-error">
+                    <h1>✗ Pago Rechazado</h1>
+                    <p>Tu pago no pudo ser procesado.</p>
+                    <p>Por favor, intenta nuevamente.</p>
+                    <a href="{{ url_for('carrito') }}" class="btn-volver">Volver al carrito</a>
+                </div>
+            {% elif error %}
+                <div class="pago-error">
+                    <h1>Error</h1>
+                    <p>{{ error }}</p>
+                    <a href="{{ url_for('carrito') }}" class="btn-volver">Volver al carrito</a>
+                </div>
+            {% else %}
+                <div class="pago-error">
+                    <h1>Error</h1>
+                    <p>Ha ocurrido un error en el proceso de pago.</p>
+                    <a href="{{ url_for('carrito') }}" class="btn-volver">Volver al carrito</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

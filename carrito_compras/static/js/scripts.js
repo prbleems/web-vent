@@ -1,23 +1,14 @@
+// El formulario ahora se envía directamente a Flask
+// Este script solo maneja la validación del lado del cliente si es necesario
 document.getElementById("loginForm").addEventListener("submit", function (event) {
-    event.preventDefault(); // Evitar el envío del formulario
-
-    // Usuario y contraseña guardados
-    const storedUser = "1"; // Cambia esto por el usuario deseado
-    const storedPassword = "1"; // Cambia esto por la contraseña deseada
-
-    // Obtener valores ingresados
     const usuarioInput = document.querySelector('input[name="usuario"]').value;
     const passwordInput = document.querySelector('input[name="password"]').value;
 
-    // Verificar las credenciales
-    if (usuarioInput === storedUser && passwordInput === storedPassword) {
-        // Redirigir si las credenciales son correctas
-        window.location.href = "inicio.html";
-    } else {
-        // Mostrar mensaje de error si son incorrectas
+    // Validación básica del lado del cliente
+    if (!usuarioInput || !passwordInput) {
+        event.preventDefault();
         const errorMessage = document.getElementById("error-message");
-        errorMessage.textContent = "Contraseña incorrecta.";
+        errorMessage.innerHTML = "<p style='color: red; font-family: \"Courier New\", Courier, monospace;'>Por favor complete todos los campos.</p>";
         errorMessage.style.display = "block";
-        errorMessage.style.fontFamily = '"Courier New", Courier, monospace';
     }
 });
