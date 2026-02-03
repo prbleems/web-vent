@@ -322,7 +322,7 @@ def admin_crear_usuario():
         # Ruta desactivada: no revelar que existe (404 genérico)
         return render_template('404.html'), 404
     # Token puede ir en query (?token=xxx) o en form (campo oculto)
-    req_token = request.args.get('token') or (request.form.get('token') if request.method == 'POST' else None)
+    req_token = (request.args.get('token') or '').strip() or (request.form.get('token') or '').strip() if request.method == 'POST' else (request.args.get('token') or '').strip()
     if req_token != token:
         # Token incorrecto o faltante: mismo 404 para no revelar la ruta
         return render_template('404.html'), 404
