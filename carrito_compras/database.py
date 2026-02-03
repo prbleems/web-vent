@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-# Base de datos persistente: si existe POSTGRES_URL (o DATABASE_URL) usamos PostgreSQL.
+# Base de datos persistente (Postgres en Neon/Vercel; SQLite en local). si existe POSTGRES_URL (o DATABASE_URL) usamos PostgreSQL.
 # Si no, usamos SQLite (local = database.db; en Vercel sin Postgres = /tmp, no persiste).
 _raw = (os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL') or '').strip()
 # Por si pegaron "psql postgresql://..." en la variable, usar solo la URL
