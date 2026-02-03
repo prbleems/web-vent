@@ -9,6 +9,39 @@ from datetime import datetime, date, timedelta
 from werkzeug.utils import secure_filename
 import re
 import sqlite3
+
+def _db_datetime(val):
+    """Convierte valor de BD (string o datetime) a datetime. Postgres devuelve datetime, SQLite string."""
+    if val is None:
+        return None
+    if isinstance(val, datetime):
+        return val
+    if isinstance(val, date) and not isinstance(val, datetime):
+        return datetime.combine(val, datetime.min.time())
+    if isinstance(val, str):
+        try:
+            return datetime.strptime(val, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            try:
+                return datetime.strptime(val, '%Y-%m-%d').replace(hour=0, minute=0, second=0, microsecond=0)
+            except ValueError:
+                return None
+    return None
+
+def _db_date(val):
+    """Convierte valor de BD a date (para fechas sin hora)."""
+    if val is None:
+        return None
+    if isinstance(val, datetime):
+        return val.date()
+    if isinstance(val, date):
+        return val
+    if isinstance(val, str):
+        try:
+            return datetime.strptime(val, '%Y-%m-%d').date()
+        except ValueError:
+            return None
+    return None
 import bcrypt
 import logging
 
@@ -226,8 +259,8 @@ def admin_login():
             
             # Verificar si la cuenta está bloqueada
             if user['bloqueado_hasta']:
-                bloqueado_hasta = datetime.strptime(user['bloqueado_hasta'], '%Y-%m-%d %H:%M:%S')
-                if datetime.now() < bloqueado_hasta:
+                bloqueado_hasta = _db_datetime(user['bloqueado_hasta'])
+                if bloqueado_hasta and datetime.now() < bloqueado_hasta:
                     tiempo_restante = bloqueado_hasta - datetime.now()
                     minutos = int(tiempo_restante.total_seconds() / 60)
                     registrar_intento_login(ip_address, usuario, False)
@@ -379,6 +412,8 @@ def admin_crear_usuario():
             return render_template('admin/crear_usuario.html', error=f'El usuario "{usuario}" ya existe.', token=token)
         except Exception as e:
             conn.close()
+            if 'unique' in str(e).lower() or 'duplicate' in str(e).lower():
+                return render_template('admin/crear_usuario.html', error=f'El usuario "{usuario}" ya existe.', token=token)
             return render_template('admin/crear_usuario.html', error=f'Error: {str(e)}', token=token)
     return render_template('admin/crear_usuario.html', token=token)
 
@@ -1968,14 +2003,14 @@ def validar_cupon():
     hoy = date.today()
     
     if cupon['fecha_inicio']:
-        fecha_inicio = datetime.strptime(cupon['fecha_inicio'], '%Y-%m-%d').date()
-        if hoy < fecha_inicio:
+        fecha_inicio = _db_date(cupon['fecha_inicio'])
+        if fecha_inicio and hoy < fecha_inicio:
             conn.close()
             return jsonify({'success': False, 'error': 'El cupón aún no está vigente'}), 400
     
     if cupon['fecha_fin']:
-        fecha_fin = datetime.strptime(cupon['fecha_fin'], '%Y-%m-%d').date()
-        if hoy > fecha_fin:
+        fecha_fin = _db_date(cupon['fecha_fin'])
+        if fecha_fin and hoy > fecha_fin:
             conn.close()
             return jsonify({'success': False, 'error': 'El cupón ha expirado'}), 400
     
