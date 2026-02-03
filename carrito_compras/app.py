@@ -42,6 +42,24 @@ def _db_date(val):
         except ValueError:
             return None
     return None
+
+def _row_to_dict(row):
+    """Convierte fila (Row/dict) a dict plano; fechas a string para evitar errores en plantillas."""
+    if row is None:
+        return None
+    d = dict(row) if hasattr(row, 'keys') and hasattr(row, '__getitem__') else row
+    out = {}
+    for k, v in d.items():
+        if isinstance(v, (datetime, date)):
+            out[k] = v.strftime('%Y-%m-%d %H:%M:%S') if isinstance(v, datetime) else v.strftime('%Y-%m-%d')
+        elif hasattr(v, '__float__') and not isinstance(v, (int, float, bool)):
+            try:
+                out[k] = float(v)
+            except (TypeError, ValueError):
+                out[k] = v
+        else:
+            out[k] = v
+    return out
 import bcrypt
 import logging
 
@@ -305,11 +323,11 @@ def admin_login():
                     return redirect(url_for('admin_index'))
                 else:
                     # Contraseña incorrecta
-                    intentos_fallidos = user['intentos_fallidos'] + 1
+                    intentos_fallidos = (user['intentos_fallidos'] or 0) + 1
                     
                     # Bloquear cuenta después de 5 intentos fallidos
                     if intentos_fallidos >= 5:
-                        bloqueado_hasta = datetime.now() + timedelta(minutes=30)
+                        bloqueado_hasta = (datetime.now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S')
                         conn.execute('''
                             UPDATE usuarios_admin 
                             SET intentos_fallidos = ?, bloqueado_hasta = ?
@@ -1441,48 +1459,50 @@ def admin_required(f):
 @app.route('/admin')
 @admin_required
 def admin_index():
-    
-    conn = get_db_connection()
-    
-    # Estadísticas
-    total_productos = conn.execute('SELECT COUNT(*) FROM productos').fetchone()[0]
-    total_pedidos = conn.execute('SELECT COUNT(*) FROM pedidos').fetchone()[0]
-    total_galeria = conn.execute('SELECT COUNT(*) FROM galeria').fetchone()[0]
-    total_archivo = conn.execute('SELECT COUNT(*) FROM archivo').fetchone()[0]
-    total_cupones = conn.execute('SELECT COUNT(*) FROM cupones').fetchone()[0]
-    
-    # Pedidos recientes
-    pedidos_recientes = conn.execute('''
-        SELECT * FROM pedidos ORDER BY fecha DESC LIMIT 5
-    ''').fetchall()
-    
-    # Productos con stock bajo (menos de 10 unidades en total)
-    productos_stock_bajo = conn.execute('''
-        SELECT p.id, p.nombre, SUM(t.stock) as stock_total
-        FROM productos p
-        LEFT JOIN tallas t ON p.id = t.producto_id
-        WHERE p.activo = 1
-        GROUP BY p.id, p.nombre
-        HAVING stock_total < 10 OR stock_total IS NULL
-        ORDER BY stock_total ASC
-        LIMIT 10
-    ''').fetchall()
-    
-    # Obtener estado de las secciones
-    config_secciones = conn.execute('SELECT seccion, habilitada, mensaje FROM configuracion_secciones').fetchall()
-    config_dict = {c['seccion']: {'habilitada': bool(c['habilitada']), 'mensaje': c['mensaje']} for c in config_secciones}
-    
-    conn.close()
-    
-    return render_template('admin/index.html', 
-                           total_productos=total_productos,
-                           total_pedidos=total_pedidos,
-                           total_galeria=total_galeria,
-                           total_archivo=total_archivo,
-                           total_cupones=total_cupones,
-                           pedidos_recientes=pedidos_recientes,
-                           productos_stock_bajo=productos_stock_bajo,
-                           config_secciones=config_dict)
+    try:
+        conn = get_db_connection()
+        total_productos = conn.execute('SELECT COUNT(*) FROM productos').fetchone()[0]
+        total_pedidos = conn.execute('SELECT COUNT(*) FROM pedidos').fetchone()[0]
+        total_galeria = conn.execute('SELECT COUNT(*) FROM galeria').fetchone()[0]
+        total_archivo = conn.execute('SELECT COUNT(*) FROM archivo').fetchone()[0]
+        total_cupones = conn.execute('SELECT COUNT(*) FROM cupones').fetchone()[0]
+        pedidos_recientes = conn.execute('SELECT * FROM pedidos ORDER BY fecha DESC LIMIT 5').fetchall()
+        productos_stock_bajo = conn.execute('''
+            SELECT p.id, p.nombre, SUM(t.stock) as stock_total
+            FROM productos p
+            LEFT JOIN tallas t ON p.id = t.producto_id
+            WHERE p.activo = 1
+            GROUP BY p.id, p.nombre
+            HAVING SUM(t.stock) < 10 OR SUM(t.stock) IS NULL
+            ORDER BY stock_total ASC
+            LIMIT 10
+        ''').fetchall()
+        config_secciones = conn.execute('SELECT seccion, habilitada, mensaje FROM configuracion_secciones').fetchall()
+        conn.close()
+        config_dict = {}
+        for c in config_secciones:
+            d = _row_to_dict(c) or c
+            if isinstance(d, dict):
+                config_dict[d.get('seccion')] = {'habilitada': bool(d.get('habilitada')), 'mensaje': d.get('mensaje') or ''}
+            else:
+                config_dict[c['seccion']] = {'habilitada': bool(c['habilitada']), 'mensaje': c['mensaje'] or ''}
+        pedidos_recientes = [_row_to_dict(p) for p in pedidos_recientes]
+        productos_stock_bajo = [_row_to_dict(p) for p in productos_stock_bajo]
+        return render_template('admin/index.html',
+                               total_productos=total_productos,
+                               total_pedidos=total_pedidos,
+                               total_galeria=total_galeria,
+                               total_archivo=total_archivo,
+                               total_cupones=total_cupones,
+                               pedidos_recientes=pedidos_recientes,
+                               productos_stock_bajo=productos_stock_bajo,
+                               config_secciones=config_dict)
+    except Exception as e:
+        import traceback
+        err = traceback.format_exc()
+        if os.environ.get('SHOW_500_ERROR'):
+            return f'<pre>Error en admin:\n{err}</pre>', 500
+        return render_template('500.html'), 500
 
 # ==================== GESTIÓN DE PRODUCTOS ====================
 
