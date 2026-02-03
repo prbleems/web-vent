@@ -242,13 +242,6 @@
             z-index: 0;
         }
         
-        .stock-badge {
-            font-size: 0.7rem;
-            margin-left: 0.25rem;
-            color: #666;
-            font-weight: normal;
-        }
-        
         .stock-message {
             font-size: 0.75rem;
             margin-top: 0.5rem;
@@ -434,11 +427,10 @@
                     <label class="vent-talla-option {% if talla_item.stock == 0 %}sin-stock{% endif %}" data-talla="{{ talla_item.talla }}" data-stock="{{ talla_item.stock }}" title="{{ talla_item.stock }} disponibles">
                         <input type="radio" name="talla" value="{{ talla_item.talla }}" required {% if talla_item.stock == 0 %}disabled{% endif %}>
                         <span class="talla-label">{% if talla_item.talla == 'Talla Única' %}ÚNICA{% else %}{{ talla_item.talla }}{% endif %}</span>
-                        <span class="stock-badge">({{ talla_item.stock }} uds)</span>
                     </label>
                     {% endfor %}
                 </div>
-                <p class="stock-message" id="stock-message" style="font-size: 0.85rem; margin-top: 0.5rem; color: #666; font-family: 'Courier New', Courier, monospace;"></p>
+                <p class="stock-message" id="stock-message" style="font-size: 0.85rem; margin-top: 0.5rem; color: #666; font-family: 'Courier New', Courier, monospace;">Selecciona una talla para ver el stock disponible.</p>
             </div>
             {% else %}
             <input type="hidden" name="talla" value="Talla Única" id="talla-hidden">
