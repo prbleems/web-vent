@@ -585,8 +585,16 @@ def producto(id):
     
     if not producto:
         return redirect(url_for('tienda'))
-    
-    return render_template('producto.html', producto=producto, tallas=tallas, total_productos=total_productos, productos_relacionados=productos_relacionados)
+    tallas_list = []
+    for t in tallas:
+        talla_nombre = t['talla'] if hasattr(t, 'keys') else t[0]
+        s = t['stock'] if hasattr(t, 'keys') else (t[1] if len(t) > 1 else 0)
+        try:
+            stock_val = int(s) if s is not None else 0
+        except (TypeError, ValueError):
+            stock_val = 0
+        tallas_list.append({'talla': talla_nombre, 'stock': stock_val})
+    return render_template('producto.html', producto=producto, tallas=tallas_list, total_productos=total_productos, productos_relacionados=productos_relacionados)
 
 @app.route('/galeria')
 def galeria():
@@ -1339,8 +1347,14 @@ def api_stock_tallas(producto_id):
     try:
         tallas = conn.execute('SELECT talla, stock FROM tallas WHERE producto_id = ?', (producto_id,)).fetchall()
         conn.close()
-        
-        tallas_dict = {t['talla']: t['stock'] for t in tallas}
+        tallas_dict = {}
+        for t in tallas:
+            talla_nombre = t['talla'] if isinstance(t, dict) else t[0]
+            s = t['stock'] if isinstance(t, dict) else t[1]
+            try:
+                tallas_dict[talla_nombre] = int(s) if s is not None else 0
+            except (TypeError, ValueError):
+                tallas_dict[talla_nombre] = 0
         return jsonify({'success': True, 'stock': tallas_dict})
     except Exception as e:
         conn.close()
@@ -1545,15 +1559,24 @@ def admin_agregar_producto():
         
         conn = get_db_connection()
         cursor = conn.cursor()
-        
-        # Insertar producto
-        cursor.execute('''
-            INSERT INTO productos (nombre, descripcion, precio, imagen, categoria, stock)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (nombre, descripcion, precio, imagen, categoria, stock))
-        
-        producto_id = cursor.lastrowid
-        
+        using_postgres = bool(os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL'))
+        if using_postgres:
+            cursor.execute('''
+                INSERT INTO productos (nombre, descripcion, precio, imagen, categoria, stock)
+                VALUES (?, ?, ?, ?, ?, ?)
+                RETURNING id
+            ''', (nombre, descripcion, precio, imagen, categoria, stock))
+            row = cursor.fetchone()
+            producto_id = row[0] if row else None
+        else:
+            cursor.execute('''
+                INSERT INTO productos (nombre, descripcion, precio, imagen, categoria, stock)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (nombre, descripcion, precio, imagen, categoria, stock))
+            producto_id = cursor.lastrowid
+        if producto_id is None:
+            conn.close()
+            return redirect(url_for('admin_productos'))
         # Gestionar tallas
         tallas_data = request.form.getlist('tallas[]')
         stocks_data = request.form.getlist('stocks[]')
@@ -1623,20 +1646,19 @@ def admin_editar_producto(id):
         tallas_data = request.form.getlist('tallas[]')
         stocks_data = request.form.getlist('stocks[]')
         tallas_ids = request.form.getlist('tallas_ids[]')
-        
-        # Eliminar tallas que ya no están
-        if tallas_ids:
-            placeholders = ','.join(['?'] * len(tallas_ids))
-            cursor.execute(f'DELETE FROM tallas WHERE producto_id = ? AND id NOT IN ({placeholders})', (id, *tallas_ids))
+        tallas_ids_valid = [x for x in tallas_ids if x and str(x).strip() and str(x).strip().isdigit()]
+        if tallas_ids_valid:
+            placeholders = ','.join(['?'] * len(tallas_ids_valid))
+            cursor.execute(f'DELETE FROM tallas WHERE producto_id = ? AND id NOT IN ({placeholders})', (id, *tallas_ids_valid))
         else:
             cursor.execute('DELETE FROM tallas WHERE producto_id = ?', (id,))
-        
-        # Actualizar o insertar tallas
         for i, talla in enumerate(tallas_data):
             if talla and talla.strip():
                 stock_talla = int(stocks_data[i]) if i < len(stocks_data) and stocks_data[i] else 0
-                talla_id = int(tallas_ids[i]) if i < len(tallas_ids) and tallas_ids[i] else None
-                
+                try:
+                    talla_id = int(tallas_ids[i]) if i < len(tallas_ids) and tallas_ids[i] and str(tallas_ids[i]).strip() else None
+                except (ValueError, TypeError):
+                    talla_id = None
                 if talla_id:
                     # Actualizar talla existente
                     cursor.execute('''
@@ -1656,15 +1678,22 @@ def admin_editar_producto(id):
         return redirect(url_for('admin_productos'))
     
     producto = conn.execute('SELECT * FROM productos WHERE id = ?', (id,)).fetchone()
-    
-    # Obtener tallas del producto
-    tallas = conn.execute('SELECT * FROM tallas WHERE producto_id = ? ORDER BY id', (id,)).fetchall()
-    
+    tallas_raw = conn.execute('SELECT * FROM tallas WHERE producto_id = ? ORDER BY id', (id,)).fetchall()
     conn.close()
-    
     if not producto:
         return redirect(url_for('admin_productos'))
-    
+    tallas = []
+    for t in tallas_raw:
+        d = _row_to_dict(t) if t else {}
+        if not d:
+            continue
+        for k in ('id', 'stock'):
+            if k in d and d[k] is not None:
+                try:
+                    d[k] = int(d[k])
+                except (TypeError, ValueError):
+                    pass
+        tallas.append(d)
     return render_template('admin/producto_form.html', producto=producto, tallas=tallas)
 
 @app.route('/admin/productos/eliminar/<int:id>', methods=['POST'])

@@ -243,7 +243,10 @@
         }
         
         .stock-badge {
-            display: none; /* Ocultar el badge de stock para diseño más limpio */
+            font-size: 0.7rem;
+            margin-left: 0.25rem;
+            color: #666;
+            font-weight: normal;
         }
         
         .stock-message {
@@ -431,6 +434,7 @@
                     <label class="vent-talla-option {% if talla_item.stock == 0 %}sin-stock{% endif %}" data-talla="{{ talla_item.talla }}" data-stock="{{ talla_item.stock }}" title="{{ talla_item.stock }} disponibles">
                         <input type="radio" name="talla" value="{{ talla_item.talla }}" required {% if talla_item.stock == 0 %}disabled{% endif %}>
                         <span class="talla-label">{% if talla_item.talla == 'Talla Única' %}ÚNICA{% else %}{{ talla_item.talla }}{% endif %}</span>
+                        <span class="stock-badge">({{ talla_item.stock }} uds)</span>
                     </label>
                     {% endfor %}
                 </div>
