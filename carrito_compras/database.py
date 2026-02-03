@@ -205,7 +205,7 @@ if POSTGRES_URL:
             ON CONFLICT (seccion) DO NOTHING
         ''')
         cur.execute('SELECT COUNT(*) FROM productos')
-        count = cur.fetchone()['count']
+        count = cur.fetchone()[0]
         if count == 0:
             cur.execute('''
                 INSERT INTO productos (nombre, descripcion, precio, imagen, categoria)

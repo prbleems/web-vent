@@ -314,6 +314,33 @@ def admin_login():
     
     return render_template('admin/login.html')
 
+def _check_setup_token():
+    """Devuelve (token, None) si el token es válido; si no, (None, response_404)."""
+    token = os.environ.get('CREATE_ADMIN_TOKEN')
+    if not token or token.strip() == '':
+        return None, (render_template('404.html'), 404)
+    req_token = (request.args.get('token') or '').strip()
+    if req_token != token:
+        return None, (render_template('404.html'), 404)
+    return token, None
+
+@app.route('/admin/init-db', methods=['GET'])
+def admin_init_db():
+    """Inicializa la BD (crea tablas y datos por defecto). Protegido por CREATE_ADMIN_TOKEN."""
+    token, err = _check_setup_token()
+    if err is not None:
+        return err[0], err[1]
+    try:
+        init_db()
+        return (
+            '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>BD lista</title></head><body style="font-family:sans-serif;max-width:500px;margin:3rem auto;padding:2rem;">'
+            '<h1>Base de datos inicializada</h1><p>Las tablas y datos por defecto ya están creados.</p>'
+            '<p><a href="' + url_for('admin_crear_usuario') + '?token=' + token + '">Crear usuario administrador</a></p>'
+            '<p><a href="' + url_for('admin_login') + '">Ir al login</a></p></body></html>'
+        )
+    except Exception as e:
+        return f'<pre>Error al inicializar la BD: {e}</pre>', 500
+
 @app.route('/admin/crear-usuario', methods=['GET', 'POST'])
 def admin_crear_usuario():
     """Crea el primer usuario admin (solo en despliegue). Protegido por CREATE_ADMIN_TOKEN."""
