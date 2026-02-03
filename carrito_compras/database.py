@@ -3,7 +3,11 @@ import sqlite3
 
 # Base de datos persistente: si existe POSTGRES_URL (o DATABASE_URL) usamos PostgreSQL.
 # Si no, usamos SQLite (local = database.db; en Vercel sin Postgres = /tmp, no persiste).
-POSTGRES_URL = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
+_raw = (os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL') or '').strip()
+# Por si pegaron "psql postgresql://..." en la variable, usar solo la URL
+if _raw.lower().startswith('psql '):
+    _raw = _raw[5:].strip()
+POSTGRES_URL = _raw if _raw.startswith('postgresql://') or _raw.startswith('postgres://') else None
 
 if POSTGRES_URL:
     import psycopg2
