@@ -110,7 +110,10 @@ def create_tables():
 create_tables()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'img')
+# En Vercel solo /tmp es escribible; en local usamos static/img
+UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER') or (
+    os.path.join('/tmp', 'uploads') if os.environ.get('VERCEL') else os.path.join(BASE_DIR, 'static', 'img')
+)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024

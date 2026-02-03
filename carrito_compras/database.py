@@ -1,7 +1,11 @@
 import sqlite3
 import os
 
-DATABASE = 'database.db'
+# En Vercel el sistema de archivos es de solo lectura excepto /tmp
+# Usar /tmp para que la app arranque; los datos no persisten entre despliegues
+DATABASE = os.environ.get('DATABASE_PATH') or (
+    '/tmp/database.db' if os.environ.get('VERCEL') else 'database.db'
+)
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
