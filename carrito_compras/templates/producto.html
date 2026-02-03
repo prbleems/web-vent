@@ -241,6 +241,10 @@
             position: relative;
             z-index: 0;
         }
+        /* Solo talla en el cuadro; ocultar cualquier badge de uds si aparece */
+        .vent-talla-option .stock-badge {
+            display: none !important;
+        }
         
         .stock-message {
             font-size: 0.75rem;
@@ -482,45 +486,48 @@
     <script src="{{ url_for('static', filename='js/carrito-persistencia.js') }}"></script>
     <script src="{{ url_for('static', filename='js/tienda.js') }}"></script>
     <script>
-        // Función para actualizar stock en tiempo real con throttling
-        let lastStockUpdate = 0;
-        const STOCK_UPDATE_INTERVAL = 2000; // 2 segundos mínimo entre actualizaciones
+        const productoIdStock = parseInt('{{ producto.id|default(0) }}');
         
-        function actualizarStockTallas() {
-            const ahora = Date.now();
-            if (ahora - lastStockUpdate < STOCK_UPDATE_INTERVAL) {
-                return; // Evitar actualizaciones muy frecuentes
+        // Mostrar stock al instante leyendo del DOM (data-stock). Sin llamar a la API.
+        function mostrarStockTallaSeleccionada() {
+            const radio = document.querySelector('input[name="talla"]:checked');
+            const mensaje = document.getElementById('stock-message');
+            if (!mensaje) return;
+            if (!radio) {
+                mensaje.textContent = 'Selecciona una talla para ver el stock disponible.';
+                mensaje.style.color = '#666';
+                return;
             }
-            lastStockUpdate = ahora;
-            
-            const productoId = parseInt('{{ producto.id|default(0) }}');
-            
-            fetch(`/api/stock_tallas/${productoId}`)
-                .then(response => {
-                    // Verificar si la respuesta es JSON antes de parsear
-                    const contentType = response.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        throw new Error('Respuesta no es JSON');
-                    }
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
+            const label = radio.closest('.vent-talla-option');
+            const stock = label ? parseInt(label.getAttribute('data-stock'), 10) : 0;
+            if (!isNaN(stock)) {
+                if (stock > 0) {
+                    mensaje.textContent = 'Stock disponible: ' + stock + ' unidades';
+                    mensaje.style.color = '#000';
+                } else {
+                    mensaje.textContent = 'Esta talla no tiene stock disponible';
+                    mensaje.style.color = '#ff0000';
+                }
+            }
+        }
+        
+        // Actualizar desde API solo en segundo plano (refresco de data-stock cada 30 s)
+        let lastStockFetch = 0;
+        function actualizarStockTallasDesdeApi() {
+            if (Date.now() - lastStockFetch < 25000) return;
+            lastStockFetch = Date.now();
+            fetch('/api/stock_tallas/' + productoIdStock)
+                .then(r => r.ok ? r.json() : Promise.reject())
                 .then(data => {
-                    if (data.success) {
-                        // Actualizar estado de tallas (sin mostrar badge)
+                    if (data.success && data.stock) {
                         Object.keys(data.stock).forEach(talla => {
-                            const stock = data.stock[talla];
-                            const option = document.querySelector(`.vent-talla-option[data-talla="${talla}"]`);
-                            
+                            const option = document.querySelector('.vent-talla-option[data-talla="' + talla + '"]');
                             if (option) {
+                                option.setAttribute('data-stock', data.stock[talla]);
+                                option.title = data.stock[talla] + ' disponibles';
                                 const radio = option.querySelector('input[type="radio"]');
                                 if (radio) {
-                                    // Actualizar tooltip con stock
-                                    option.title = `${stock} disponibles`;
-                                    
-                                    if (stock > 0) {
+                                    if (data.stock[talla] > 0) {
                                         radio.disabled = false;
                                         option.style.opacity = '1';
                                         option.style.cursor = 'pointer';
@@ -533,40 +540,15 @@
                                         option.style.borderColor = '#ccc';
                                         option.title = 'Sin stock';
                                         option.classList.add('sin-stock');
-                                        
-                                        // Si estaba seleccionada, deseleccionar
-                                        if (radio.checked) {
-                                            radio.checked = false;
-                                        }
+                                        if (radio.checked) radio.checked = false;
                                     }
                                 }
                             }
                         });
-                        
-                        // Actualizar mensaje de stock seleccionado
-                        const tallaSeleccionada = document.querySelector('input[name="talla"]:checked');
-                        if (tallaSeleccionada) {
-                            const stock = data.stock[tallaSeleccionada.value];
-                            const mensaje = document.getElementById('stock-message');
-                            if (mensaje) {
-                                if (stock > 0) {
-                                    mensaje.textContent = `Stock disponible: ${stock} unidades`;
-                                    mensaje.style.color = '#000';
-                                } else {
-                                    mensaje.textContent = 'Esta talla no tiene stock disponible';
-                                    mensaje.style.color = '#ff0000';
-                                }
-                            }
-                        }
+                        mostrarStockTallaSeleccionada();
                     }
                 })
-                .catch(error => {
-                    // Solo mostrar error si no es un 429 (rate limit)
-                    if (!error.message.includes('429')) {
-                        console.error('Error al actualizar stock:', error);
-                    }
-                    // No hacer nada más, simplemente ignorar el error
-                });
+                .catch(function() {});
         }
         
         // Lightbox con zoom para imagen del producto
@@ -763,19 +745,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             const btnAgregar = document.getElementById('btn-agregar-carrito');
             
-            // Actualizar stock cada 10 segundos (reducido para evitar rate limiting)
-            setInterval(actualizarStockTallas, 10000);
-            
-            // Actualizar stock cuando se selecciona una talla
+            // Al elegir una talla: mostrar stock al instante (sin esperar API)
             const tallasInputs = document.querySelectorAll('input[name="talla"]');
             tallasInputs.forEach(input => {
-                input.addEventListener('change', function() {
-                    actualizarStockTallas();
-                });
+                input.addEventListener('change', mostrarStockTallaSeleccionada);
             });
             
-            // Actualizar stock inicial
-            actualizarStockTallas();
+            // Mensaje inicial
+            mostrarStockTallaSeleccionada();
+            
+            // Refresco de stock desde API cada 30 s (en segundo plano)
+            setInterval(actualizarStockTallasDesdeApi, 30000);
+            setTimeout(actualizarStockTallasDesdeApi, 800);
             
             if (btnAgregar) {
                 btnAgregar.addEventListener('click', function(e) {
@@ -826,8 +807,7 @@
                                 if (typeof mostrarFeedbackAgregado === 'function') {
                                     mostrarFeedbackAgregado();
                                 }
-                                // Actualizar stock después de agregar (con delay para evitar rate limiting)
-                                setTimeout(actualizarStockTallas, 2000);
+                                setTimeout(actualizarStockTallasDesdeApi, 1500);
                             } else {
                                 if (typeof notificarError === 'function') {
                                     notificarError('Error: ' + (data.error || 'Error desconocido'));
