@@ -314,6 +314,47 @@ def admin_login():
     
     return render_template('admin/login.html')
 
+@app.route('/admin/crear-usuario', methods=['GET', 'POST'])
+def admin_crear_usuario():
+    """Crea el primer usuario admin (solo en despliegue). Protegido por CREATE_ADMIN_TOKEN."""
+    token = os.environ.get('CREATE_ADMIN_TOKEN')
+    if not token or token.strip() == '':
+        # Ruta desactivada: no revelar que existe (404 genérico)
+        return render_template('404.html'), 404
+    # Token puede ir en query (?token=xxx) o en form (campo oculto)
+    req_token = request.args.get('token') or (request.form.get('token') if request.method == 'POST' else None)
+    if req_token != token:
+        # Token incorrecto o faltante: mismo 404 para no revelar la ruta
+        return render_template('404.html'), 404
+    if request.method == 'POST':
+        usuario = request.form.get('usuario', '').strip()
+        password = request.form.get('password', '').strip()
+        password_confirm = request.form.get('password_confirm', '').strip()
+        email = request.form.get('email', '').strip() or None
+        if not usuario or not re.match(r'^[a-zA-Z0-9_]+$', usuario):
+            return render_template('admin/crear_usuario.html', error='Usuario inválido (solo letras, números y _).', token=token)
+        if len(password) < 8:
+            return render_template('admin/crear_usuario.html', error='La contraseña debe tener al menos 8 caracteres.', token=token)
+        if password != password_confirm:
+            return render_template('admin/crear_usuario.html', error='Las contraseñas no coinciden.', token=token)
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        conn = get_db_connection()
+        try:
+            conn.execute('''
+                INSERT INTO usuarios_admin (usuario, password_hash, email, activo)
+                VALUES (?, ?, ?, 1)
+            ''', (usuario, password_hash, email))
+            conn.commit()
+            conn.close()
+            return redirect(url_for('admin_login'))
+        except sqlite3.IntegrityError:
+            conn.close()
+            return render_template('admin/crear_usuario.html', error=f'El usuario "{usuario}" ya existe.', token=token)
+        except Exception as e:
+            conn.close()
+            return render_template('admin/crear_usuario.html', error=f'Error: {str(e)}', token=token)
+    return render_template('admin/crear_usuario.html', token=token)
+
 @app.route('/inicio')
 def inicio():
     return redirect(url_for('index'))
