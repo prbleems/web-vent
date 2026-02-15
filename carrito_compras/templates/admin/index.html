@@ -44,6 +44,16 @@
                 <p class="stat-number">{{ total_cupones }}</p>
                 <a href="{{ url_for('admin_cupones') }}" class="stat-link">Gestionar →</a>
             </div>
+            <div class="stat-card">
+                <h3>Clientes</h3>
+                <p class="stat-number">{{ total_clientes }}</p>
+                <a href="{{ url_for('admin_clientes') }}" class="stat-link">Ver cuentas →</a>
+            </div>
+            <div class="stat-card">
+                <h3>Estadísticas</h3>
+                <p class="stat-number">—</p>
+                <a href="{{ url_for('admin_estadisticas') }}" class="stat-link">Ver compras y envíos →</a>
+            </div>
         </div>
 
         <div class="admin-section">

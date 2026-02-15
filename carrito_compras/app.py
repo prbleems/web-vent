@@ -6,6 +6,7 @@ import os
 import requests
 import uuid
 from datetime import datetime, date, timedelta
+from collections import defaultdict
 from werkzeug.utils import secure_filename
 import re
 import sqlite3
@@ -60,6 +61,24 @@ def _row_to_dict(row):
         else:
             out[k] = v
     return out
+
+
+def formatear_telefono_cl(telefono):
+    """Formatea teléfono chileno para mostrar como +56 9 0000 0000."""
+    if not telefono:
+        return ''
+    s = re.sub(r'\D', '', str(telefono).strip())
+    if s.startswith('56') and len(s) >= 11:
+        s = s[2:]
+    if len(s) == 9 and s.startswith('9'):
+        return '+56 9 ' + s[1:5] + ' ' + s[5:]
+    if len(s) == 8:
+        return '+56 9 ' + s[0:4] + ' ' + s[4:]
+    if len(s) >= 9:
+        return '+56 9 ' + s[-9:-5] + ' ' + s[-5:]
+    return telefono
+
+
 import bcrypt
 import logging
 
@@ -96,7 +115,8 @@ except Exception as e:
 app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=2)
+# Sesión cliente persistente: 1 año (el usuario sigue logueado al cerrar el navegador o volver otro día)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 
 @app.after_request
 def set_security_headers(response):
@@ -665,7 +685,22 @@ def carrito():
     total_subtotal = sum(item['precio'] * item['cantidad'] for item in carrito)
     
     # Obtener datos de envío de la sesión si existen
-    datos_envio = session.get('datos_envio', {})
+    datos_envio = dict(session.get('datos_envio') or {})
+    # Si el usuario está logueado, rellenar con datos del cliente (formato teléfono: +56 9 0000 0000)
+    if is_cliente_logged_in():
+        conn = get_db_connection()
+        cliente = conn.execute(
+            'SELECT email, nombre, telefono, direccion, comuna, region FROM clientes WHERE id = ?',
+            (session['cliente_id'],)
+        ).fetchone()
+        conn.close()
+        if cliente:
+            datos_envio['email'] = cliente['email'] or datos_envio.get('email') or ''
+            datos_envio['nombre'] = cliente['nombre'] or datos_envio.get('nombre') or ''
+            datos_envio['telefono'] = formatear_telefono_cl(cliente['telefono']) or datos_envio.get('telefono') or ''
+            datos_envio['direccion'] = cliente['direccion'] or datos_envio.get('direccion') or ''
+            datos_envio['comuna'] = cliente['comuna'] or datos_envio.get('comuna') or ''
+            datos_envio['region'] = cliente['region'] or datos_envio.get('region') or ''
     tipo_envio = datos_envio.get('tipo_envio', 'retiro')
     # Solo usar costo_envio si ya fue calculado explícitamente
     costo_envio = datos_envio.get('costo_envio') if datos_envio.get('costo_envio') is not None else 0
@@ -929,6 +964,9 @@ def guardar_datos_envio():
         # Agregar datos de dirección solo si están presentes y no están vacíos
         if direccion and direccion.strip():
             datos_guardar['direccion'] = direccion.strip()
+        depto_casa = sanitizar_texto(data.get('depto_casa', ''), max_length=100)
+        if depto_casa and depto_casa.strip():
+            datos_guardar['depto_casa'] = depto_casa.strip()
         if comuna and comuna.strip():
             datos_guardar['comuna'] = comuna.strip()
         if region and region.strip():
@@ -993,8 +1031,8 @@ def procesar_pago_exitoso(metodo_pago, payment_id=None, datos_pago=None):
     # Insertar pedido
     cursor.execute('''
         INSERT INTO pedidos (numero_pedido, usuario_email, usuario_nombre, usuario_telefono,
-                          tipo_envio, direccion, comuna, region, costo_envio, subtotal, descuento, total, metodo_pago, estado, datos_pago, cupon_id, codigo_cupon)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                          tipo_envio, direccion, depto_casa, comuna, region, costo_envio, subtotal, descuento, total, metodo_pago, estado, datos_pago, cupon_id, codigo_cupon)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         numero_pedido,
         datos_envio.get('email', ''),
@@ -1002,6 +1040,7 @@ def procesar_pago_exitoso(metodo_pago, payment_id=None, datos_pago=None):
         datos_envio.get('telefono', ''),
         datos_envio.get('tipo_envio', 'retiro'),
         datos_envio.get('direccion', ''),
+        datos_envio.get('depto_casa', ''),
         datos_envio.get('comuna', ''),
         datos_envio.get('region', ''),
         costo_envio,
@@ -1365,6 +1404,7 @@ def api_buscar_pedido():
         'usuario_telefono': pedido['usuario_telefono'],
         'tipo_envio': pedido['tipo_envio'],
         'direccion': pedido['direccion'],
+        'depto_casa': pedido.get('depto_casa'),
         'comuna': pedido['comuna'],
         'region': pedido['region'],
         'costo_envio': pedido['costo_envio'],
@@ -1378,6 +1418,177 @@ def api_buscar_pedido():
     }
     
     return jsonify({'success': True, 'pedido': pedido_dict})
+
+# ==================== CUENTA CLIENTE (registro / login / perfil) ====================
+
+def is_cliente_logged_in():
+    return bool(session.get('cliente_id'))
+
+@app.route('/api/cliente/registro', methods=['POST'])
+def api_cliente_registro():
+    if not request.is_json:
+        return jsonify({'success': False, 'error': 'Content-Type debe ser application/json'}), 400
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip().lower()
+    password = (data.get('password') or '').strip()
+    nombre = sanitizar_texto(data.get('nombre', ''), max_length=200)
+    telefono = sanitizar_texto(data.get('telefono', ''), max_length=20)
+    direccion = sanitizar_texto(data.get('direccion', ''), max_length=300)
+    comuna = sanitizar_texto(data.get('comuna', ''), max_length=100)
+    region = sanitizar_texto(data.get('region', ''), max_length=100)
+    if not email or not validar_email(email):
+        return jsonify({'success': False, 'error': 'Email inválido'}), 400
+    if len(password) < 8:
+        return jsonify({'success': False, 'error': 'La contraseña debe tener al menos 8 caracteres'}), 400
+    if not nombre:
+        return jsonify({'success': False, 'error': 'El nombre es obligatorio'}), 400
+    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    conn = get_db_connection()
+    try:
+        conn.execute('''
+            INSERT INTO clientes (email, password_hash, nombre, telefono, direccion, comuna, region)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (email, password_hash, nombre, telefono or None, direccion or None, comuna or None, region or None))
+        conn.commit()
+        row = conn.execute('SELECT id, email, nombre FROM clientes WHERE email = ?', (email,)).fetchone()
+        conn.close()
+        session.permanent = True  # Sesión persistente (cookie dura PERMANENT_SESSION_LIFETIME)
+        session['cliente_id'] = row['id']
+        session['cliente_email'] = row['email']
+        session['cliente_nombre'] = row['nombre']
+        return jsonify({'success': True, 'mensaje': 'Cuenta creada correctamente'})
+    except sqlite3.IntegrityError:
+        conn.close()
+        return jsonify({'success': False, 'error': 'Ya existe una cuenta con ese email'}), 400
+    except Exception as e:
+        conn.close()
+        if 'unique' in str(e).lower() or 'duplicate' in str(e).lower():
+            return jsonify({'success': False, 'error': 'Ya existe una cuenta con ese email'}), 400
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/cliente/login', methods=['POST'])
+def api_cliente_login():
+    if not request.is_json:
+        return jsonify({'success': False, 'error': 'Content-Type debe ser application/json'}), 400
+    data = request.get_json() or {}
+    email = (data.get('email') or '').strip().lower()
+    password = (data.get('password') or '').strip()
+    if not email or not password:
+        return jsonify({'success': False, 'error': 'Email y contraseña son obligatorios'}), 400
+    conn = get_db_connection()
+    cliente = conn.execute('SELECT id, email, nombre, password_hash FROM clientes WHERE email = ?', (email,)).fetchone()
+    conn.close()
+    if not cliente:
+        return jsonify({'success': False, 'error': 'Email o contraseña incorrectos'}), 401
+    try:
+        if not bcrypt.checkpw(password.encode('utf-8'), cliente['password_hash'].encode('utf-8')):
+            return jsonify({'success': False, 'error': 'Email o contraseña incorrectos'}), 401
+    except Exception:
+        return jsonify({'success': False, 'error': 'Error al verificar contraseña'}), 500
+    session.permanent = True  # Sesión persistente (permanece logueado al cerrar navegador)
+    session['cliente_id'] = cliente['id']
+    session['cliente_email'] = cliente['email']
+    session['cliente_nombre'] = cliente['nombre']
+    return jsonify({'success': True, 'mensaje': 'Sesión iniciada'})
+
+@app.route('/api/cliente/logout', methods=['POST'])
+def api_cliente_logout():
+    session.pop('cliente_id', None)
+    session.pop('cliente_email', None)
+    session.pop('cliente_nombre', None)
+    return jsonify({'success': True})
+
+@app.route('/api/cliente/perfil')
+def api_cliente_perfil():
+    if not is_cliente_logged_in():
+        return jsonify({'success': True, 'logged_in': False})
+    conn = get_db_connection()
+    cliente = conn.execute(
+        'SELECT id, email, nombre, telefono, direccion, comuna, region, fecha_registro FROM clientes WHERE id = ?',
+        (session['cliente_id'],)
+    ).fetchone()
+    if not cliente:
+        conn.close()
+        session.pop('cliente_id', None)
+        session.pop('cliente_email', None)
+        session.pop('cliente_nombre', None)
+        return jsonify({'success': True, 'logged_in': False})
+    pedidos = conn.execute(
+        'SELECT id, numero_pedido, total, estado, fecha, tipo_envio, direccion, depto_casa, comuna, region FROM pedidos WHERE usuario_email = ? ORDER BY fecha DESC',
+        (session['cliente_email'],)
+    ).fetchall()
+    conn.close()
+    cliente_dict = _row_to_dict(cliente) if cliente else {}
+    pedidos_list = [_row_to_dict(p) for p in pedidos] if pedidos else []
+    for p in pedidos_list:
+        if p and isinstance(p.get('fecha'), str):
+            pass
+        elif p and hasattr(p.get('fecha'), 'strftime'):
+            p['fecha'] = p['fecha'].strftime('%Y-%m-%d %H:%M')
+    return jsonify({
+        'success': True,
+        'logged_in': True,
+        'cliente': cliente_dict,
+        'pedidos': pedidos_list
+    })
+
+@app.route('/api/cliente/actualizar', methods=['POST'])
+def api_cliente_actualizar():
+    if not is_cliente_logged_in():
+        return jsonify({'success': False, 'error': 'No autorizado'}), 401
+    if not request.is_json:
+        return jsonify({'success': False, 'error': 'Content-Type debe ser application/json'}), 400
+    data = request.get_json() or {}
+    nombre = sanitizar_texto(data.get('nombre', ''), max_length=200)
+    telefono = sanitizar_texto(data.get('telefono', ''), max_length=20)
+    direccion = sanitizar_texto(data.get('direccion', ''), max_length=300)
+    comuna = sanitizar_texto(data.get('comuna', ''), max_length=100)
+    region = sanitizar_texto(data.get('region', ''), max_length=100)
+    if not nombre:
+        return jsonify({'success': False, 'error': 'El nombre es obligatorio'}), 400
+    conn = get_db_connection()
+    conn.execute('''
+        UPDATE clientes SET nombre = ?, telefono = ?, direccion = ?, comuna = ?, region = ?
+        WHERE id = ?
+    ''', (nombre, telefono or None, direccion or None, comuna or None, region or None, session['cliente_id']))
+    conn.commit()
+    conn.close()
+    session['cliente_nombre'] = nombre
+    return jsonify({'success': True, 'mensaje': 'Datos actualizados'})
+
+
+@app.route('/api/cliente/cambiar-password', methods=['POST'])
+def api_cliente_cambiar_password():
+    """Cambiar contraseña del cliente logueado (sin correo)."""
+    if not is_cliente_logged_in():
+        return jsonify({'success': False, 'error': 'No autorizado'}), 401
+    if not request.is_json:
+        return jsonify({'success': False, 'error': 'Content-Type debe ser application/json'}), 400
+    data = request.get_json() or {}
+    password_actual = (data.get('password_actual') or '').strip()
+    password_nueva = (data.get('password_nueva') or '').strip()
+    if not password_actual:
+        return jsonify({'success': False, 'error': 'Indica tu contraseña actual'}), 400
+    if len(password_nueva) < 8:
+        return jsonify({'success': False, 'error': 'La nueva contraseña debe tener al menos 8 caracteres'}), 400
+    conn = get_db_connection()
+    row = conn.execute('SELECT password_hash FROM clientes WHERE id = ?', (session['cliente_id'],)).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({'success': False, 'error': 'Usuario no encontrado'}), 404
+    try:
+        if not bcrypt.checkpw(password_actual.encode('utf-8'), row['password_hash'].encode('utf-8')):
+            conn.close()
+            return jsonify({'success': False, 'error': 'Contraseña actual incorrecta'}), 400
+    except Exception:
+        conn.close()
+        return jsonify({'success': False, 'error': 'Error al verificar contraseña'}), 500
+    password_hash = bcrypt.hashpw(password_nueva.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    conn.execute('UPDATE clientes SET password_hash = ? WHERE id = ?', (password_hash, session['cliente_id']))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True, 'mensaje': 'Contraseña actualizada'})
+
 
 # ==================== RUTAS DE ADMINISTRACIÓN ====================
 
@@ -1418,6 +1629,7 @@ def admin_index():
         total_galeria = conn.execute('SELECT COUNT(*) FROM galeria').fetchone()[0]
         total_archivo = conn.execute('SELECT COUNT(*) FROM archivo').fetchone()[0]
         total_cupones = conn.execute('SELECT COUNT(*) FROM cupones').fetchone()[0]
+        total_clientes = conn.execute('SELECT COUNT(*) FROM clientes').fetchone()[0]
         pedidos_recientes = conn.execute('SELECT * FROM pedidos ORDER BY fecha DESC LIMIT 5').fetchall()
         productos_stock_bajo = conn.execute('''
             SELECT p.id, p.nombre, SUM(t.stock) as stock_total
@@ -1446,6 +1658,7 @@ def admin_index():
                                total_galeria=total_galeria,
                                total_archivo=total_archivo,
                                total_cupones=total_cupones,
+                               total_clientes=total_clientes,
                                pedidos_recientes=pedidos_recientes,
                                productos_stock_bajo=productos_stock_bajo,
                                config_secciones=config_dict)
@@ -2120,6 +2333,122 @@ def obtener_mensaje_seccion(seccion):
     
     return config['mensaje'] or 'SECCIÓN CERRADA'
 
+# ==================== ADMIN: CLIENTES (CUENTAS) ====================
+
+@app.route('/admin/clientes')
+def admin_clientes():
+    if not is_admin():
+        return redirect(url_for('admin_login'))
+    conn = get_db_connection()
+    clientes = conn.execute('''
+        SELECT id, email, nombre, telefono, direccion, comuna, region, fecha_registro
+        FROM clientes ORDER BY fecha_registro DESC
+    ''').fetchall()
+    conn.close()
+    clientes_list = [_row_to_dict(r) for r in clientes]
+    return render_template('admin/clientes.html', clientes=clientes_list)
+
+
+@app.route('/admin/clientes/<int:id>/cambiar-password', methods=['POST'])
+def admin_cliente_cambiar_password(id):
+    if not is_admin():
+        return jsonify({'success': False, 'error': 'No autorizado'}), 401
+    data = request.get_json() or request.form
+    password_nueva = (data.get('password_nueva') or data.get('password') or '').strip()
+    if len(password_nueva) < 8:
+        return jsonify({'success': False, 'error': 'La contraseña debe tener al menos 8 caracteres'}), 400
+    conn = get_db_connection()
+    row = conn.execute('SELECT id FROM clientes WHERE id = ?', (id,)).fetchone()
+    if not row:
+        conn.close()
+        return jsonify({'success': False, 'error': 'Cliente no encontrado'}), 404
+    password_hash = bcrypt.hashpw(password_nueva.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    conn.execute('UPDATE clientes SET password_hash = ? WHERE id = ?', (password_hash, id))
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True, 'mensaje': 'Contraseña actualizada'})
+
+
+# ==================== ADMIN: ESTADÍSTICAS ====================
+
+@app.route('/admin/estadisticas')
+def admin_estadisticas():
+    if not is_admin():
+        return redirect(url_for('admin_login'))
+    conn = get_db_connection()
+    # Totales
+    total_pedidos = conn.execute('SELECT COUNT(*) FROM pedidos').fetchone()[0]
+    total_ventas_val = conn.execute('SELECT COALESCE(SUM(total), 0) FROM pedidos').fetchone()[0]
+    total_ventas = float(total_ventas_val) if total_ventas_val is not None else 0
+    ticket_promedio = (total_ventas / total_pedidos) if total_pedidos else 0
+    # Por tipo de entrega
+    retiro = conn.execute("SELECT COUNT(*) FROM pedidos WHERE tipo_envio = 'retiro'").fetchone()[0]
+    envio = conn.execute("SELECT COUNT(*) FROM pedidos WHERE tipo_envio = 'envio'").fetchone()[0]
+    # Por estado
+    estados = conn.execute('''
+        SELECT estado, COUNT(*) as cantidad FROM pedidos GROUP BY estado
+    ''').fetchall()
+    # Todos los pedidos para agrupar por mes
+    pedidos_fechas = conn.execute('SELECT id, fecha, total FROM pedidos ORDER BY fecha').fetchall()
+    # Productos más vendidos (por cantidad y por monto)
+    items = conn.execute('''
+        SELECT producto_nombre, producto_id, SUM(cantidad) as total_unidades, SUM(cantidad * precio) as total_monto
+        FROM pedido_items GROUP BY producto_id, producto_nombre ORDER BY total_unidades DESC LIMIT 15
+    ''').fetchall()
+    # Ventas por categoría (join items con productos)
+    try:
+        cat_rows = conn.execute('''
+            SELECT p.categoria, SUM(pi.cantidad * pi.precio) as total
+            FROM pedido_items pi
+            JOIN productos p ON p.id = pi.producto_id
+            WHERE p.categoria IS NOT NULL AND p.categoria != ''
+            GROUP BY p.categoria
+        ''').fetchall()
+    except Exception:
+        cat_rows = []
+    conn.close()
+    estados_list = [_row_to_dict(r) for r in estados]
+    ventas_por_mes = defaultdict(float)
+    pedidos_por_mes = defaultdict(int)
+    for p in pedidos_fechas:
+        d = _row_to_dict(p) or p
+        fecha = d.get('fecha')
+        if fecha:
+            if isinstance(fecha, str) and len(fecha) >= 7:
+                mes = fecha[:7]
+            elif hasattr(fecha, 'strftime'):
+                mes = fecha.strftime('%Y-%m')
+            else:
+                mes = str(fecha)[:7]
+            ventas_por_mes[mes] += float(d.get('total') or 0)
+            pedidos_por_mes[mes] += 1
+    ventas_por_mes = dict(sorted(ventas_por_mes.items()))
+    pedidos_por_mes = dict(sorted(pedidos_por_mes.items()))
+    max_ventas_mes = max(ventas_por_mes.values()) if ventas_por_mes else 1
+    max_estado = max((e.get('cantidad') or 0) for e in estados_list) if estados_list else 1
+    max_tipo = max(retiro, envio, 1)
+    productos_mas_vendidos = [_row_to_dict(r) for r in items]
+    ventas_por_categoria = [_row_to_dict(r) for r in cat_rows]
+    try:
+        max_categoria = max((float(c.get('total') or 0) for c in ventas_por_categoria), default=1)
+    except (ValueError, TypeError):
+        max_categoria = 1
+    return render_template('admin/estadisticas.html',
+                           total_pedidos=total_pedidos,
+                           total_ventas=total_ventas,
+                           ticket_promedio=ticket_promedio,
+                           retiro=retiro,
+                           envio=envio,
+                           estados=estados_list,
+                           ventas_por_mes=ventas_por_mes,
+                           pedidos_por_mes=pedidos_por_mes,
+                           max_ventas_mes=max_ventas_mes,
+                           max_estado=max_estado,
+                           max_tipo=max_tipo,
+                           productos_mas_vendidos=productos_mas_vendidos,
+                           ventas_por_categoria=ventas_por_categoria,
+                           max_categoria=max_categoria)
+
 # ==================== GESTIÓN DE PEDIDOS ====================
 
 @app.route('/admin/pedidos')
@@ -2182,7 +2511,7 @@ def admin_exportar_pedidos():
         # Encabezados
         writer.writerow([
             'ID', 'Número de Pedido', 'Cliente', 'Email', 'Teléfono',
-            'Tipo de Envío', 'Dirección', 'Comuna', 'Región',
+            'Tipo de Envío', 'Dirección', 'Dpto/Casa', 'Comuna', 'Región',
             'Costo de Envío', 'Subtotal', 'Descuento', 'Total',
             'Método de Pago', 'Estado', 'Fecha'
         ])
@@ -2197,6 +2526,7 @@ def admin_exportar_pedidos():
                 pedido['usuario_telefono'] or '',
                 pedido['tipo_envio'] or '',
                 pedido['direccion'] or '',
+                pedido.get('depto_casa') or '',
                 pedido['comuna'] or '',
                 pedido['region'] or '',
                 pedido['costo_envio'] or 0,

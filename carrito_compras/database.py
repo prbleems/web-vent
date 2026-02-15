@@ -102,6 +102,7 @@ if POSTGRES_URL:
                 usuario_telefono TEXT,
                 tipo_envio TEXT,
                 direccion TEXT,
+                depto_casa TEXT,
                 comuna TEXT,
                 region TEXT,
                 costo_envio REAL DEFAULT 0,
@@ -194,7 +195,25 @@ if POSTGRES_URL:
                 fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS clientes (
+                id SERIAL PRIMARY KEY,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                nombre TEXT NOT NULL,
+                telefono TEXT,
+                direccion TEXT,
+                comuna TEXT,
+                region TEXT,
+                fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         conn.commit()
+        try:
+            cur.execute('ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS depto_casa TEXT')
+            conn.commit()
+        except Exception:
+            pass
         cur.execute('''
             INSERT INTO configuracion_secciones (seccion, habilitada, mensaje)
             VALUES ('tienda', 1, 'TIENDA CERRADA'),
@@ -289,6 +308,10 @@ else:
             )
         ''')
         try:
+            cursor.execute('ALTER TABLE pedidos ADD COLUMN depto_casa TEXT')
+        except sqlite3.OperationalError:
+            pass
+        try:
             cursor.execute('ALTER TABLE pedidos ADD COLUMN cupon_id INTEGER')
         except sqlite3.OperationalError:
             pass
@@ -381,6 +404,19 @@ else:
                 habilitada INTEGER DEFAULT 1,
                 mensaje TEXT,
                 fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS clientes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                nombre TEXT NOT NULL,
+                telefono TEXT,
+                direccion TEXT,
+                comuna TEXT,
+                region TEXT,
+                fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
         for seccion, habilitada, mensaje in [

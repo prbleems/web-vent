@@ -171,3 +171,16 @@
     color: #000;
     font-family: "Courier New", Courier, monospace;
 }
+
+/* Nav galería (sin carrito): GALERIA y TIENDA centrados */
+.vent-nav.vent-nav-galeria {
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr;
+}
+.vent-nav.vent-nav-galeria .vent-nav-left {
+    justify-self: start;
+}
+.vent-nav.vent-nav-galeria .vent-nav-center {
+    grid-column: 2;
+    justify-self: center;
+}

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuentas de Clientes - VENT Admin</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Cuentas de Clientes</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_index') }}" class="btn-admin">← Panel Principal</a>
+            </div>
+        </header>
+
+        <div class="admin-section">
+            {% if clientes %}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Nombre</th>
+                        <th>Teléfono</th>
+                        <th>Dirección</th>
+                        <th>Comuna / Región</th>
+                        <th>Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in clientes %}
+                    <tr>
+                        <td>#{{ c.id }}</td>
+                        <td>{{ c.email or '—' }}</td>
+                        <td>{{ c.nombre or '—' }}</td>
+                        <td>{{ c.telefono or '—' }}</td>
+                        <td>{{ c.direccion or '—' }}</td>
+                        <td>{{ c.comuna or '—' }} / {{ c.region or '—' }}</td>
+                        <td>{{ c.fecha_registro or '—' }}</td>
+                        <td>
+                            <button type="button" class="btn-small btn-cambiar-pass" data-cliente-id="{{ c.id }}" data-cliente-email="{{ c.email or '' }}">Cambiar contraseña</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No hay cuentas de clientes registradas.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Modal cambiar contraseña -->
+    <div id="modal-cambiar-pass" class="admin-modal-overlay" style="display: none;">
+        <div class="admin-modal-box">
+            <h3>Cambiar contraseña</h3>
+            <p id="modal-cliente-email" style="margin-bottom: 1rem; color: #666;"></p>
+            <form id="form-cambiar-pass-admin">
+                <input type="hidden" id="modal-cliente-id" name="cliente_id">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="modal-password-nueva">Nueva contraseña (mín. 8 caracteres) *</label>
+                    <input type="password" id="modal-password-nueva" name="password_nueva" required minlength="8" style="width: 100%; padding: 0.5rem; border: 2px solid #000;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label for="modal-password-confirmar">Confirmar contraseña *</label>
+                    <input type="password" id="modal-password-confirmar" name="password_confirmar" required minlength="8" style="width: 100%; padding: 0.5rem; border: 2px solid #000;">
+                </div>
+                <div id="modal-pass-msg" class="vent-msg" style="margin-bottom: 1rem;"></div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="submit" class="btn-primary">Guardar contraseña</button>
+                    <button type="button" id="modal-cerrar" class="btn-admin">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .admin-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; box-sizing: border-box; }
+        .admin-modal-box { background: #fff; border: 2px solid #000; padding: 2rem; max-width: 400px; width: 100%; font-family: "Courier New", Courier, monospace; }
+        .admin-modal-box h3 { margin: 0 0 0.5rem 0; }
+    </style>
+    <script>
+        (function() {
+            var modal = document.getElementById('modal-cambiar-pass');
+            var form = document.getElementById('form-cambiar-pass-admin');
+            var clienteId = document.getElementById('modal-cliente-id');
+            var clienteEmail = document.getElementById('modal-cliente-email');
+            var msgEl = document.getElementById('modal-pass-msg');
+            document.querySelectorAll('.btn-cambiar-pass').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    clienteId.value = this.getAttribute('data-cliente-id');
+                    clienteEmail.textContent = 'Cliente: ' + (this.getAttribute('data-cliente-email') || '—');
+                    document.getElementById('modal-password-nueva').value = '';
+                    document.getElementById('modal-password-confirmar').value = '';
+                    msgEl.textContent = '';
+                    modal.style.display = 'flex';
+                });
+            });
+            document.getElementById('modal-cerrar').addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) modal.style.display = 'none';
+            });
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var nueva = document.getElementById('modal-password-nueva').value;
+                var confirmar = document.getElementById('modal-password-confirmar').value;
+                if (nueva.length < 8) {
+                    msgEl.textContent = 'La contraseña debe tener al menos 8 caracteres';
+                    msgEl.style.color = '#c00';
+                    return;
+                }
+                if (nueva !== confirmar) {
+                    msgEl.textContent = 'Las contraseñas no coinciden';
+                    msgEl.style.color = '#c00';
+                    return;
+                }
+                msgEl.textContent = '';
+                fetch('/admin/clientes/' + clienteId.value + '/cambiar-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password_nueva: nueva })
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        msgEl.textContent = 'Contraseña actualizada correctamente';
+                        msgEl.style.color = '#000';
+                        setTimeout(function() { modal.style.display = 'none'; }, 1500);
+                    } else {
+                        msgEl.textContent = data.error || 'Error';
+                        msgEl.style.color = '#c00';
+                    }
+                })
+                .catch(function() {
+                    msgEl.textContent = 'Error de conexión';
+                    msgEl.style.color = '#c00';
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

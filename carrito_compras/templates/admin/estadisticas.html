@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas de Compras y Envíos - VENT Admin</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/icon (1).png') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        /* Gráficos de palos (barras) */
+        .stats-bars { display: flex; flex-direction: column; gap: 1rem; max-width: 800px; }
+        .stats-bar-row { display: flex; align-items: center; gap: 1rem; }
+        .stats-bar-label { width: 120px; font-size: 0.85rem; flex-shrink: 0; }
+        .stats-bar-track { flex: 1; height: 28px; background: #f0f0f0; border: 1px solid #000; overflow: hidden; }
+        .stats-bar-fill { height: 100%; background: #000; transition: width 0.5s ease; min-width: 2px; }
+        .stats-bar-value { width: 90px; text-align: right; font-size: 0.9rem; flex-shrink: 0; }
+        .stats-palos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; align-items: end; margin-top: 1rem; min-height: 200px; }
+        .stats-palo-wrap { display: flex; flex-direction: column; align-items: center; }
+        .stats-palo-bar { width: 100%; max-width: 50px; background: #000; border: 2px solid #000; transition: height 0.4s ease; }
+        .stats-palo-label { font-size: 0.75rem; margin-top: 0.5rem; text-align: center; word-break: break-all; }
+    </style>
+</head>
+<body class="admin-body">
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Estadísticas de Compras y Envíos</h1>
+            <div class="admin-nav">
+                <a href="{{ url_for('admin_index') }}" class="btn-admin">← Panel Principal</a>
+            </div>
+        </header>
+
+        <div class="admin-stats" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+                <h3>Total pedidos</h3>
+                <p class="stat-number">{{ total_pedidos }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total ventas</h3>
+                <p class="stat-number">{{ total_ventas|formato_precio_clp }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Ticket promedio</h3>
+                <p class="stat-number">{{ ticket_promedio|formato_precio_clp }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Retiro en tienda</h3>
+                <p class="stat-number">{{ retiro }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Envío a domicilio</h3>
+                <p class="stat-number">{{ envio }}</p>
+            </div>
+        </div>
+
+        <!-- Gráfico de palos: Ventas por mes -->
+        <div class="admin-section">
+            <h2>Gráfico: Ventas por mes</h2>
+            {% if ventas_por_mes %}
+            <div class="stats-palos-grid">
+                {% for mes, total in (ventas_por_mes|dictsort)|reverse %}
+                <div class="stats-palo-wrap">
+                    <div class="stats-palo-bar" style="height: {{ (total / max_ventas_mes * 180)|int }}px;"></div>
+                    <span class="stats-palo-label">{{ mes }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.85rem; color: #666;">Total por mes en la tabla abajo.</p>
+            {% else %}
+            <p>No hay ventas por mes.</p>
+            {% endif %}
+        </div>
+
+        <!-- Gráfico de palos: Retiro vs Envío -->
+        <div class="admin-section">
+            <h2>Gráfico: Tipo de entrega</h2>
+            <div class="stats-bars">
+                <div class="stats-bar-row">
+                    <span class="stats-bar-label">Retiro tienda</span>
+                    <div class="stats-bar-track">
+                        <div class="stats-bar-fill" style="width: {{ (retiro / max_tipo * 100)|int }}%;"></div>
+                    </div>
+                    <span class="stats-bar-value">{{ retiro }} pedidos</span>
+                </div>
+                <div class="stats-bar-row">
+                    <span class="stats-bar-label">Envío domicilio</span>
+                    <div class="stats-bar-track">
+                        <div class="stats-bar-fill" style="width: {{ (envio / max_tipo * 100)|int }}%;"></div>
+                    </div>
+                    <span class="stats-bar-value">{{ envio }} pedidos</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de palos: Pedidos por estado -->
+        <div class="admin-section">
+            <h2>Gráfico: Pedidos por estado</h2>
+            {% if estados %}
+            <div class="stats-bars">
+                {% for e in estados %}
+                <div class="stats-bar-row">
+                    <span class="stats-bar-label"><span class="badge badge-{{ e.estado }}">{{ e.estado or 'N/A' }}</span></span>
+                    <div class="stats-bar-track">
+                        <div class="stats-bar-fill" style="width: {{ ((e.cantidad / max_estado) * 100)|int }}%;"></div>
+                    </div>
+                    <span class="stats-bar-value">{{ e.cantidad }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No hay datos.</p>
+            {% endif %}
+        </div>
+
+        <!-- Ventas por categoría (palos) -->
+        {% if ventas_por_categoria %}
+        <div class="admin-section">
+            <h2>Gráfico: Ventas por categoría</h2>
+            <div class="stats-bars">
+                {% for c in ventas_por_categoria %}
+                <div class="stats-bar-row">
+                    <span class="stats-bar-label">{{ c.categoria or 'Sin categoría' }}</span>
+                    <div class="stats-bar-track">
+                        <div class="stats-bar-fill" style="width: {{ ((c.total / (max_categoria|default(1))) * 100)|int }}%;"></div>
+                    </div>
+                    <span class="stats-bar-value">{{ c.total|formato_precio_clp }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="admin-section">
+            <h2>Productos más vendidos</h2>
+            {% if productos_mas_vendidos %}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Unidades vendidas</th>
+                        <th>Total vendido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in productos_mas_vendidos %}
+                    <tr>
+                        <td>{{ p.producto_nombre or '—' }}</td>
+                        <td>{{ p.total_unidades or 0 }}</td>
+                        <td>{{ (p.total_monto or 0)|formato_precio_clp }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No hay ventas de productos registradas.</p>
+            {% endif %}
+        </div>
+
+        <div class="admin-section">
+            <h2>Pedidos por estado (tabla)</h2>
+            {% if estados %}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Estado</th>
+                        <th>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in estados %}
+                    <tr>
+                        <td><span class="badge badge-{{ e.estado }}">{{ e.estado or 'N/A' }}</span></td>
+                        <td>{{ e.cantidad }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No hay datos.</p>
+            {% endif %}
+        </div>
+
+        <div class="admin-section">
+            <h2>Ventas por mes (tabla)</h2>
+            {% if ventas_por_mes %}
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Mes</th>
+                        <th>Pedidos</th>
+                        <th>Total ventas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mes, total in (ventas_por_mes|dictsort)|reverse %}
+                    <tr>
+                        <td>{{ mes }}</td>
+                        <td>{{ pedidos_por_mes[mes]|default(0) }}</td>
+                        <td>{{ total|formato_precio_clp }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No hay ventas registradas por mes.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,172 @@
+{# Icono usuario + modal cuenta cliente. Incluir en páginas con nav. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vent-modal-usuario.css') }}">
+
+<button type="button" class="vent-user-icon" id="vent-open-modal-usuario" title="Mi cuenta" aria-label="Mi cuenta">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+</button>
+
+<div class="vent-modal-overlay" id="vent-modal-usuario-overlay" aria-hidden="true">
+    <div class="vent-modal-usuario" role="dialog" aria-labelledby="vent-modal-title">
+        <div class="vent-modal-header">
+            <h2 id="vent-modal-title">Mi cuenta</h2>
+            <button type="button" class="vent-modal-close" id="vent-close-modal-usuario" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="vent-modal-body">
+            {# Estado: no logueado -> pestañas Iniciar sesión | Registrarse #}
+            <div id="vent-modal-guest">
+                <div class="vent-tabs">
+                    <button type="button" class="vent-tab vent-tab-active" data-tab="login">Iniciar sesión</button>
+                    <button type="button" class="vent-tab" data-tab="register">Registrarse</button>
+                </div>
+                <div id="vent-tab-login" class="vent-tab-panel vent-tab-panel-active">
+                    <form id="vent-form-login">
+                        <div class="form-group">
+                            <label for="vent-login-email">Email</label>
+                            <input type="email" id="vent-login-email" name="email" required autocomplete="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-login-password">Contraseña</label>
+                            <input type="password" id="vent-login-password" name="password" required autocomplete="current-password">
+                            <a href="#" class="vent-link-olvido" id="vent-olvido-password" style="display: block; margin-top: 0.4rem; font-size: 0.85rem;">¿Has olvidado la contraseña?</a>
+                        </div>
+                        <div id="vent-login-msg" class="vent-msg"></div>
+                        <button type="submit" class="btn-vent" id="vent-btn-login">Entrar</button>
+                    </form>
+                </div>
+                <div id="vent-tab-register" class="vent-tab-panel">
+                    <form id="vent-form-register">
+                        <div class="form-group">
+                            <label for="vent-reg-nombre">Nombre completo *</label>
+                            <input type="text" id="vent-reg-nombre" name="nombre" required autocomplete="name">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-reg-email">Email *</label>
+                            <input type="email" id="vent-reg-email" name="email" required autocomplete="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-reg-password">Contraseña (mín. 8 caracteres) *</label>
+                            <input type="password" id="vent-reg-password" name="password" required autocomplete="new-password" minlength="8">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-reg-telefono">Teléfono</label>
+                            <input type="tel" id="vent-reg-telefono" name="telefono" autocomplete="tel">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-reg-direccion">Dirección</label>
+                            <input type="text" id="vent-reg-direccion" name="direccion" autocomplete="street-address">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-reg-comuna">Comuna</label>
+                            <input type="text" id="vent-reg-comuna" name="comuna">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-reg-region">Región</label>
+                            <select id="vent-reg-region" name="region">
+                                <option value="">Selecciona</option>
+                                <option value="Región Metropolitana">Región Metropolitana</option>
+                                <option value="Valparaíso">Valparaíso</option>
+                                <option value="Biobío">Biobío</option>
+                                <option value="Araucanía">Araucanía</option>
+                                <option value="Los Lagos">Los Lagos</option>
+                                <option value="Otra">Otra</option>
+                            </select>
+                        </div>
+                        <div id="vent-register-msg" class="vent-msg"></div>
+                        <button type="submit" class="btn-vent" id="vent-btn-register">Crear cuenta</button>
+                    </form>
+                </div>
+            </div>
+
+            {# Estado: logueado -> Mi cuenta: Pedidos | Mis datos | Datos de envío #}
+            <div id="vent-modal-logged" style="display: none;">
+                <div class="vent-tabs">
+                    <button type="button" class="vent-tab vent-tab-active" data-tab="pedidos">Mis pedidos</button>
+                    <button type="button" class="vent-tab" data-tab="datos">Mis datos</button>
+                    <button type="button" class="vent-tab" data-tab="envio">Datos de envío</button>
+                </div>
+                <div id="vent-tab-pedidos" class="vent-tab-panel vent-tab-panel-active">
+                    <div id="vent-pedidos-list"></div>
+                </div>
+                <div id="vent-tab-datos" class="vent-tab-panel">
+                    <h3 class="vent-perfil-section-title">Editar datos personales</h3>
+                    <form id="vent-form-actualizar-datos" style="margin-top: 0.5rem;">
+                        <div class="form-group">
+                            <label for="vent-upd-email">Email (no editable)</label>
+                            <input type="email" id="vent-upd-email" name="email" readonly tabindex="-1" style="background: #f5f5f5;">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-upd-nombre-datos">Nombre *</label>
+                            <input type="text" id="vent-upd-nombre-datos" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-upd-telefono-datos">Teléfono</label>
+                            <input type="tel" id="vent-upd-telefono-datos" name="telefono">
+                        </div>
+                        <div id="vent-update-datos-msg" class="vent-msg"></div>
+                        <button type="submit" class="btn-vent">Guardar datos personales</button>
+                    </form>
+                    <h3 class="vent-perfil-section-title" style="margin-top: 1.5rem;">Cambiar contraseña</h3>
+                    <form id="vent-form-cambiar-password" style="margin-top: 0.5rem;">
+                        <div class="form-group">
+                            <label for="vent-password-actual">Contraseña actual *</label>
+                            <input type="password" id="vent-password-actual" name="password_actual" required autocomplete="current-password">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-password-nueva">Nueva contraseña (mín. 8 caracteres) *</label>
+                            <input type="password" id="vent-password-nueva" name="password_nueva" required minlength="8" autocomplete="new-password">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-password-confirmar">Confirmar nueva contraseña *</label>
+                            <input type="password" id="vent-password-confirmar" name="password_confirmar" required minlength="8" autocomplete="new-password">
+                        </div>
+                        <div id="vent-cambiar-password-msg" class="vent-msg"></div>
+                        <button type="submit" class="btn-vent">Cambiar contraseña</button>
+                    </form>
+                </div>
+                <div id="vent-tab-envio" class="vent-tab-panel">
+                    <h3 class="vent-perfil-section-title">Editar datos de envío</h3>
+                    <form id="vent-form-actualizar-envio" style="margin-top: 0.5rem;">
+                        <div class="form-group">
+                            <label for="vent-upd-nombre">Nombre *</label>
+                            <input type="text" id="vent-upd-nombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-upd-telefono">Teléfono</label>
+                            <input type="tel" id="vent-upd-telefono" name="telefono">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-upd-direccion">Dirección</label>
+                            <input type="text" id="vent-upd-direccion" name="direccion" placeholder="Calle, número, depto">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-upd-comuna">Comuna</label>
+                            <input type="text" id="vent-upd-comuna" name="comuna">
+                        </div>
+                        <div class="form-group">
+                            <label for="vent-upd-region">Región</label>
+                            <select id="vent-upd-region" name="region">
+                                <option value="">Selecciona</option>
+                                <option value="Región Metropolitana">Región Metropolitana</option>
+                                <option value="Valparaíso">Valparaíso</option>
+                                <option value="Biobío">Biobío</option>
+                                <option value="Araucanía">Araucanía</option>
+                                <option value="Los Lagos">Los Lagos</option>
+                                <option value="Otra">Otra</option>
+                            </select>
+                        </div>
+                        <div id="vent-update-msg" class="vent-msg"></div>
+                        <button type="submit" class="btn-vent">Guardar datos de envío</button>
+                    </form>
+                </div>
+                <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #000;">
+                    <button type="button" class="btn-vent" id="vent-btn-logout" style="background: #fff; color: #000;">Cerrar sesión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/vent-modal-usuario.js') }}"></script>

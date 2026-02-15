@@ -46,6 +46,9 @@
                         {% if pedido.direccion %}
                         <p><strong>Dirección:</strong> {{ pedido.direccion }}</p>
                         {% endif %}
+                        {% if pedido.depto_casa %}
+                        <p><strong>Dpto / N° casa:</strong> {{ pedido.depto_casa }}</p>
+                        {% endif %}
                         {% if pedido.comuna %}
                         <p><strong>Comuna:</strong> {{ pedido.comuna }}</p>
                         {% endif %}

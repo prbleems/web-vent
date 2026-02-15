@@ -140,6 +140,115 @@ function notificarAdvertencia(mensaje, duracion = 3500) {
     return mostrarNotificacion(mensaje, 'warning', duracion);
 }
 
+/**
+ * Confirmación estilo VENT (reemplaza confirm() nativo)
+ * @param {string} mensaje - Pregunta a mostrar
+ * @param {function} onAceptar - Se ejecuta al pulsar Aceptar
+ * @param {function} onCancelar - Opcional, al pulsar Cancelar
+ */
+function confirmarVent(mensaje, onAceptar, onCancelar) {
+    var overlay = document.createElement('div');
+    overlay.className = 'vent-confirm-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'vent-confirm-titulo');
+
+    var box = document.createElement('div');
+    box.className = 'vent-confirm-box';
+    box.innerHTML =
+        '<p class="vent-confirm-titulo" id="vent-confirm-titulo">' + mensaje + '</p>' +
+        '<div class="vent-confirm-btns">' +
+        '<button type="button" class="vent-confirm-btn vent-confirm-cancelar">Cancelar</button>' +
+        '<button type="button" class="vent-confirm-btn vent-confirm-aceptar">Aceptar</button>' +
+        '</div>';
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    function cerrar(resultado) {
+        overlay.classList.add('vent-confirm-out');
+        setTimeout(function() {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 200);
+        if (resultado === true && typeof onAceptar === 'function') onAceptar();
+        if (resultado === false && typeof onCancelar === 'function') onCancelar();
+    }
+
+    box.querySelector('.vent-confirm-aceptar').addEventListener('click', function() { cerrar(true); });
+    box.querySelector('.vent-confirm-cancelar').addEventListener('click', function() { cerrar(false); });
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) cerrar(false);
+    });
+    document.addEventListener('keydown', function tecla(e) {
+        if (e.key === 'Escape') {
+            cerrar(false);
+            document.removeEventListener('keydown', tecla);
+        }
+    });
+}
+
+// Estilos del modal de confirmación VENT
+if (!document.getElementById('vent-confirm-styles')) {
+    var styleConfirm = document.createElement('style');
+    styleConfirm.id = 'vent-confirm-styles';
+    styleConfirm.textContent = [
+        '.vent-confirm-overlay {',
+        '  position: fixed; top: 0; left: 0; right: 0; bottom: 0;',
+        '  background: rgba(0,0,0,0.4);',
+        '  z-index: 10001;',
+        '  display: flex; align-items: center; justify-content: center;',
+        '  padding: 20px;',
+        '  box-sizing: border-box;',
+        '  animation: ventConfirmFadeIn 0.2s ease-out;',
+        '}',
+        '.vent-confirm-overlay.vent-confirm-out { animation: ventConfirmFadeOut 0.2s ease-in forwards; }',
+        '.vent-confirm-box {',
+        '  background: #fff;',
+        '  border: 2px solid #000;',
+        '  padding: 28px 32px;',
+        '  max-width: 400px;',
+        '  width: 100%;',
+        '  font-family: "Courier New", Courier, monospace;',
+        '  animation: ventConfirmSlide 0.25s ease-out;',
+        '}',
+        '.vent-confirm-titulo {',
+        '  margin: 0 0 24px 0;',
+        '  font-size: 14px;',
+        '  line-height: 1.5;',
+        '  color: #000;',
+        '  text-transform: uppercase;',
+        '  letter-spacing: 0.5px;',
+        '}',
+        '.vent-confirm-btns {',
+        '  display: flex;',
+        '  gap: 12px;',
+        '  justify-content: flex-end;',
+        '}',
+        '.vent-confirm-btn {',
+        '  padding: 12px 24px;',
+        '  border: 2px solid #000;',
+        '  background: #fff;',
+        '  color: #000;',
+        '  font-family: "Courier New", Courier, monospace;',
+        '  font-size: 12px;',
+        '  text-transform: uppercase;',
+        '  letter-spacing: 1px;',
+        '  cursor: pointer;',
+        '  transition: background 0.2s, color 0.2s;',
+        '}',
+        '.vent-confirm-btn:hover {',
+        '  background: #000;',
+        '  color: #fff;',
+        '}',
+        '.vent-confirm-aceptar { background: #000; color: #fff; }',
+        '.vent-confirm-aceptar:hover { background: #333; color: #fff; }',
+        '@keyframes ventConfirmFadeIn { from { opacity: 0; } to { opacity: 1; } }',
+        '@keyframes ventConfirmFadeOut { from { opacity: 1; } to { opacity: 0; } }',
+        '@keyframes ventConfirmSlide { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }'
+    ].join('\n');
+    document.head.appendChild(styleConfirm);
+}
+
 // Agregar estilos de animación si no existen
 if (!document.getElementById('notificaciones-styles')) {
     const style = document.createElement('style');

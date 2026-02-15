@@ -280,10 +280,10 @@
                             <strong>Tipo de Entrega:</strong>
                             ${pedido.tipo_envio === 'retiro' ? 'RETIRO EN TIENDA' : pedido.tipo_envio === 'envio' ? 'ENVÍO A DOMICILIO' : 'N/A'}
                         </div>
-                        ${pedido.tipo_envio === 'envio' && pedido.direccion ? `
+                        ${pedido.tipo_envio === 'envio' && (pedido.direccion || pedido.depto_casa) ? `
                         <div class="pedido-info-item">
                             <strong>Dirección:</strong>
-                            ${pedido.direccion || ''}${pedido.comuna ? ', ' + pedido.comuna : ''}${pedido.region ? ', ' + pedido.region : ''}
+                            ${pedido.direccion || ''}${pedido.depto_casa ? (pedido.direccion ? ', ' : '') + 'Dpto/Casa: ' + pedido.depto_casa : ''}${pedido.comuna ? ', ' + pedido.comuna : ''}${pedido.region ? ', ' + pedido.region : ''}
                         </div>
                         ` : ''}
                     </div>

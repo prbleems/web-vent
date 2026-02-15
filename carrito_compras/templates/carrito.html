@@ -94,7 +94,10 @@
                 <img src="{{ url_for('static', filename='img/vent3d.gif') }}" alt="Logo" class="logo-img">
             </a>
             <h1 class="carrito-title"> </h1>
-            <a href="{{ url_for('tienda') }}" class="volver-link">← Volver a la tienda</a>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <a href="{{ url_for('tienda') }}" class="volver-link">← Volver a la tienda</a>
+                {% include 'includes/vent_modal_usuario.html' %}
+            </div>
         </div>
 
         {% if carrito and carrito|length > 0 %}
@@ -241,6 +244,10 @@
                             <label for="direccion">DIRECCIÓN *</label>
                             <input type="text" id="direccion" name="direccion" value="{{ datos_envio.direccion or '' }}">
                         </div>
+                        <div class="form-group">
+                            <label for="depto_casa">DPTO / N° CASA (CONDOMINIO)</label>
+                            <input type="text" id="depto_casa" name="depto_casa" placeholder="Ej: Depto 401, Casa 12" value="{{ datos_envio.depto_casa or '' }}">
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="comuna">COMUNA *</label>
@@ -346,6 +353,7 @@
                 email: document.getElementById('email').value.trim() || '',
                 telefono: document.getElementById('telefono').value.trim() || '',
                 direccion: document.getElementById('direccion') ? document.getElementById('direccion').value.trim() : '',
+                depto_casa: document.getElementById('depto_casa') ? document.getElementById('depto_casa').value.trim() : '',
                 comuna: document.getElementById('comuna') ? document.getElementById('comuna').value.trim() : '',
                 region: document.getElementById('region') ? document.getElementById('region').value.trim() : ''
             };
