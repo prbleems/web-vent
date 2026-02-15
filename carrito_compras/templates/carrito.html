@@ -103,7 +103,7 @@
                 <!-- Lista de productos -->
                 <div class="productos-lista">
                     {% for item in carrito %}
-                    <div class="producto-item">
+                    <div class="producto-item" data-producto-id="{{ item.id }}" data-talla="{{ item.get('talla') or 'Talla Única' }}" data-precio="{{ item.precio }}">
                         <div class="producto-imagen">
                             {% set img_url = url_for('static', filename=item.imagen.replace('/static/', '')) if item.imagen.startswith('/static/') else item.imagen %}
                             {% set fallback_img = url_for('static', filename='img/prueba.galeria.png') %}
@@ -190,12 +190,8 @@
                         <h3 style="font-family: 'Courier New', Courier, monospace; text-transform: uppercase; margin-bottom: 1rem; font-size: 1rem;">Método de Pago</h3>
                         <div class="pago-opciones" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
                             <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.8rem; border: 2px solid #000; font-family: 'Courier New', Courier, monospace;">
-                                <input type="radio" name="metodo_pago" value="webpay" checked onchange="actualizarBotonPago()">
+                                <input type="radio" name="metodo_pago" value="webpay" checked>
                                 <span>Webpay Plus</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.8rem; border: 2px solid #000; font-family: 'Courier New', Courier, monospace;">
-                                <input type="radio" name="metodo_pago" value="mercadopago" onchange="actualizarBotonPago()">
-                                <span>Mercado Pago</span>
                             </label>
                         </div>
                         <form action="" method="POST" class="pago-form" id="formPago">
@@ -280,10 +276,14 @@
     <script src="{{ url_for('static', filename='js/carrito-persistencia.js') }}"></script>
     <script src="{{ url_for('static', filename='js/carrito.js') }}"></script>
     <script>
-        // Variables globales (valores desde servidor)
+        // Variables globales (valores desde servidor, se actualizan por AJAX)
         var totalSubtotal = parseFloat('{{ total_subtotal }}') || 0;
         var descuentoActual = parseFloat('{{ descuento }}') || 0;
         var carritoServidor = JSON.parse('{{ carrito|tojson|safe }}');
+        window.actualizarTotalesCarrito = function(st, desc, envio, tot) {
+            totalSubtotal = st;
+            descuentoActual = desc;
+        };
         
         function toggleDireccion() {
             const radioChecked = document.querySelector('input[name="tipo_envio"]:checked');
@@ -416,22 +416,8 @@
         }
 
         function formatPrice(price) {
-            return '$' + price.toLocaleString('es-CL', {minimumFractionDigits: 0, maximumFractionDigits: 0});
-        }
-
-        function actualizarBotonPago() {
-            const radioChecked = document.querySelector('input[name="metodo_pago"]:checked');
-            if (!radioChecked) return;
-            
-            const metodoSeleccionado = radioChecked.value;
-            const btnPagar = document.getElementById('btnPagar');
-            if (!btnPagar) return;
-            
-            if (metodoSeleccionado === 'webpay') {
-                btnPagar.textContent = 'Pagar con Webpay Plus';
-            } else if (metodoSeleccionado === 'mercadopago') {
-                btnPagar.textContent = 'Pagar con Mercado Pago';
-            }
+            var n = typeof price === 'number' ? price : parseFloat(price || 0);
+            return '$' + (isNaN(n) ? 0 : n).toLocaleString('es-CL', {minimumFractionDigits: 0, maximumFractionDigits: 0});
         }
 
         // Inicializar todo al cargar la página
@@ -454,7 +440,6 @@
             }
             
             // Inicializar funciones
-            actualizarBotonPago();
             toggleDireccion();
             
             // Agregar event listeners a los botones de cantidad
@@ -564,86 +549,45 @@
                             }
                             const metodoPago = metodoPagoRadio.value;
                             
-                            if (metodoPago === 'webpay') {
-                                fetch('{{ url_for("iniciar_pago_webpay") }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                })
-                                .then(function(response) {
-                                    return response.json();
-                                })
-                                .then(function(data) {
-                                    if (data.success && data.url && data.token) {
-                                        console.log('Redirigiendo a Webpay con token:', data.token);
-                                        
-                                        const form = document.createElement('form');
-                                        form.method = 'POST';
-                                        form.action = data.url;
-                                        form.style.display = 'none';
-                                        
-                                        const tokenInput = document.createElement('input');
-                                        tokenInput.type = 'hidden';
-                                        tokenInput.name = 'token_ws';
-                                        tokenInput.value = data.token;
-                                        form.appendChild(tokenInput);
-                                        
-                                        document.body.appendChild(form);
-                                        form.submit();
-                                    } else {
-                                        var errorMsg = data.error || 'Error desconocido';
-                                        if (typeof notificarError === 'function') {
-                                            notificarError('Error al iniciar el pago: ' + errorMsg);
-                                        } else {
-                                            alert('Error al iniciar el pago: ' + errorMsg);
-                                        }
-                                    }
-                                })
-                                .catch(function(error) {
-                                    console.error('Error al comunicarse con Webpay:', error);
+                            fetch('{{ url_for("iniciar_pago_webpay") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            })
+                            .then(function(response) {
+                                return response.json();
+                            })
+                            .then(function(data) {
+                                if (data.success && data.url && data.token) {
+                                    const form = document.createElement('form');
+                                    form.method = 'POST';
+                                    form.action = data.url;
+                                    form.style.display = 'none';
+                                    const tokenInput = document.createElement('input');
+                                    tokenInput.type = 'hidden';
+                                    tokenInput.name = 'token_ws';
+                                    tokenInput.value = data.token;
+                                    form.appendChild(tokenInput);
+                                    document.body.appendChild(form);
+                                    form.submit();
+                                } else {
+                                    var errorMsg = data.error || 'Error desconocido';
                                     if (typeof notificarError === 'function') {
-                                        notificarError('Error al iniciar el pago con Webpay. Por favor, intenta nuevamente.');
+                                        notificarError('Error al iniciar el pago: ' + errorMsg);
                                     } else {
-                                        alert('Error al iniciar el pago con Webpay. Por favor, intenta nuevamente.');
+                                        alert('Error al iniciar el pago: ' + errorMsg);
                                     }
-                                });
-                            } else if (metodoPago === 'mercadopago') {
-                                fetch('{{ url_for("iniciar_pago_mercadopago") }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                })
-                                .then(function(response) {
-                                    if (response.redirected) {
-                                        window.location.href = response.url;
-                                        return null;
-                                    } else {
-                                        return response.json();
-                                    }
-                                })
-                                .then(function(data) {
-                                    if (data && data.success === true && data.url) {
-                                        window.location.href = data.url;
-                                    } else if (data && data.success === false) {
-                                        var errorMsg = data.error || 'Error desconocido';
-                                        if (typeof notificarError === 'function') {
-                                            notificarError('Error al iniciar el pago: ' + errorMsg);
-                                        } else {
-                                            alert('Error al iniciar el pago: ' + errorMsg);
-                                        }
-                                    }
-                                })
-                                .catch(function(error) {
-                                    console.error('Error:', error);
-                                    if (typeof notificarError === 'function') {
-                                        notificarError('Error al iniciar el pago con Mercado Pago');
-                                    } else {
-                                        alert('Error al iniciar el pago con Mercado Pago');
-                                    }
-                                });
-                            }
+                                }
+                            })
+                            .catch(function(error) {
+                                console.error('Error al comunicarse con Webpay:', error);
+                                if (typeof notificarError === 'function') {
+                                    notificarError('Error al iniciar el pago con Webpay. Por favor, intenta nuevamente.');
+                                } else {
+                                    alert('Error al iniciar el pago con Webpay. Por favor, intenta nuevamente.');
+                                }
+                            });
                         } else {
                             var errorMsg = result.error || 'Error desconocido';
                             if (typeof notificarError === 'function') {
@@ -666,35 +610,55 @@
         });
         
         function aplicarCupon() {
-            const codigo = document.getElementById('codigoCupon').value.trim().toUpperCase();
-            const mensaje = document.getElementById('cuponMensaje');
-            
+            var codigo = document.getElementById('codigoCupon').value.trim().toUpperCase();
+            var mensaje = document.getElementById('cuponMensaje');
+            if (!mensaje) return;
             if (!codigo) {
                 mensaje.textContent = 'Por favor ingresa un código de cupón';
                 mensaje.style.color = '#dc3545';
                 return;
             }
-            
             fetch('/api/validar_cupon', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    codigo: codigo,
-                    subtotal: totalSubtotal
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ codigo: codigo, subtotal: totalSubtotal })
             })
-            .then(function(response) {
-                return response.json();
-            })
+            .then(function(response) { return response.json(); })
             .then(function(result) {
                 if (result.success) {
+                    descuentoActual = result.descuento || 0;
                     mensaje.textContent = 'Cupón aplicado correctamente';
                     mensaje.style.color = '#28a745';
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 500);
+                    var costoEnvioEl = document.getElementById('costoEnvio');
+                    var costoEnvio = 0;
+                    if (costoEnvioEl && costoEnvioEl.textContent) {
+                        var m = costoEnvioEl.textContent.replace(/[^0-9]/g, '');
+                        if (m) costoEnvio = parseInt(m, 10);
+                    }
+                    var total = totalSubtotal - descuentoActual + costoEnvio;
+                    if (total < 0) total = 0;
+                    var descuentoDisplay = document.getElementById('descuentoDisplay');
+                    if (!descuentoDisplay && descuentoActual > 0) {
+                        var resumenDetalle = document.querySelector('.resumen-detalle');
+                        var costoEnvioLine = document.getElementById('costoEnvio');
+                        var lineaEnvio = costoEnvioLine ? costoEnvioLine.closest('.resumen-linea') : null;
+                        if (resumenDetalle && lineaEnvio) {
+                            var divDescuento = document.createElement('div');
+                            divDescuento.className = 'resumen-linea';
+                            divDescuento.setAttribute('style', 'color: #28a745;');
+                            divDescuento.innerHTML = '<span>Descuento (' + result.codigo + '):</span><span id="descuentoDisplay">-' + formatPrice(descuentoActual) + '</span>';
+                            resumenDetalle.insertBefore(divDescuento, lineaEnvio);
+                        }
+                    } else if (descuentoDisplay) {
+                        descuentoDisplay.textContent = '-' + formatPrice(descuentoActual);
+                    }
+                    var totalFinal = document.getElementById('totalFinal');
+                    if (totalFinal) totalFinal.textContent = formatPrice(total);
+                    var cuponSection = document.querySelector('.cupon-section');
+                    if (cuponSection) {
+                        cuponSection.innerHTML = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;"><span style="font-family: \'Courier New\', Courier, monospace; font-size: 0.9rem;">Cupón aplicado: <strong>' + result.codigo + '</strong></span><button type="button" onclick="removerCupon()" style="background: none; border: none; color: #dc3545; cursor: pointer; font-family: \'Courier New\', Courier, monospace; text-decoration: underline; font-size: 0.85rem;">Remover</button></div>';
+                    }
+                    if (typeof notificarExito === 'function') notificarExito('Cupón aplicado');
                 } else {
                     mensaje.textContent = result.error || 'Error al aplicar el cupón';
                     mensaje.style.color = '#dc3545';
@@ -710,16 +674,28 @@
         function removerCupon() {
             fetch('/api/remover_cupon', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' }
             })
-            .then(function(response) {
-                return response.json();
-            })
+            .then(function(response) { return response.json(); })
             .then(function(result) {
                 if (result.success) {
-                    window.location.reload();
+                    descuentoActual = 0;
+                    var costoEnvioEl = document.getElementById('costoEnvio');
+                    var costoEnvio = 0;
+                    if (costoEnvioEl && costoEnvioEl.textContent) {
+                        var m = costoEnvioEl.textContent.replace(/[^0-9]/g, '');
+                        if (m) costoEnvio = parseInt(m, 10);
+                    }
+                    var total = totalSubtotal + costoEnvio;
+                    var descuentoDisplayEl = document.getElementById('descuentoDisplay');
+                    if (descuentoDisplayEl && descuentoDisplayEl.parentElement) descuentoDisplayEl.parentElement.remove();
+                    var totalFinal = document.getElementById('totalFinal');
+                    if (totalFinal) totalFinal.textContent = formatPrice(total);
+                    var cuponSection = document.querySelector('.cupon-section');
+                    if (cuponSection) {
+                        cuponSection.innerHTML = '<div style="display: flex; gap: 0.5rem;"><input type="text" id="codigoCupon" placeholder="Código de cupón" style="flex: 1; padding: 0.6rem; border: 2px solid #000; font-family: \'Courier New\', Courier, monospace; font-size: 0.9rem;"><button type="button" onclick="aplicarCupon()" style="padding: 0.6rem 1.2rem; background: #000; color: #fff; border: 2px solid #000; font-family: \'Courier New\', Courier, monospace; text-transform: uppercase; cursor: pointer; font-size: 0.85rem;">Aplicar</button></div><div id="cuponMensaje" style="margin-top: 0.5rem; font-size: 0.85rem; font-family: \'Courier New\', Courier, monospace;"></div>';
+                    }
+                    if (typeof notificarExito === 'function') notificarExito('Cupón removido');
                 }
             });
         }

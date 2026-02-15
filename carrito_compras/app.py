@@ -111,7 +111,7 @@ def set_security_headers(response):
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
         "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
         "img-src 'self' data: https:; "
-        "connect-src 'self' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl https://api.mercadopago.com https://cdn.jsdelivr.net;"
+        "connect-src 'self' https://webpay3gint.transbank.cl https://webpay3g.transbank.cl https://cdn.jsdelivr.net;"
     )
     return response
 
@@ -141,17 +141,6 @@ app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', 'tu_contraseña')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'vent@vent.cl')
 
 mail = Mail(app)
-
-MP_ACCESS_TOKEN = os.getenv('MP_ACCESS_TOKEN', 'tu_access_token_mercadopago')
-try:
-    if MP_ACCESS_TOKEN != 'tu_access_token_mercadopago':
-        import mercadopago
-        mp = mercadopago.SDK(MP_ACCESS_TOKEN)
-    else:
-        mp = None
-except ImportError:
-    mp = None
-    print("Mercado Pago SDK no está instalado. Ejecuta: pip install mercadopago")
 
 COSTO_ENVIO_FIJO = 5000
 
@@ -820,38 +809,75 @@ def agregar_carrito():
         print(f"Error en agregar_carrito: {str(e)}")
         return jsonify({'success': False, 'error': f'Error del servidor: {str(e)}'}), 500
 
+def _carrito_totales():
+    """Calcula subtotal, costo_envio, descuento y total a partir de sesión."""
+    carrito = session.get('carrito', [])
+    datos_envio = session.get('datos_envio', {})
+    cupon_info = session.get('cupon_aplicado', {})
+    total_subtotal = sum(item['precio'] * item['cantidad'] for item in carrito)
+    costo_envio = datos_envio.get('costo_envio') if datos_envio.get('costo_envio') is not None else 0
+    descuento = cupon_info.get('descuento', 0) if cupon_info else 0
+    total = total_subtotal - descuento + costo_envio
+    if total < 0:
+        total = 0
+    return {
+        'total_subtotal': total_subtotal,
+        'costo_envio': costo_envio,
+        'descuento': descuento,
+        'total': total
+    }
+
 @app.route('/actualizar_cantidad', methods=['POST'])
 def actualizar_cantidad():
-    
-    data = request.json
+    data = request.json or {}
     producto_id = data.get('producto_id')
     cambio = data.get('cambio', 0)
-    
+    talla = (data.get('talla') or 'Talla Única').strip()
+
     carrito = session.get('carrito', [])
-    
     for item in carrito:
-        if item['id'] == producto_id:
-            nueva_cantidad = item['cantidad'] + cambio
+        mismo_id = item['id'] == producto_id
+        misma_talla = (item.get('talla') or 'Talla Única') == talla
+        if mismo_id and misma_talla:
+            nueva_cantidad = item['cantidad'] + int(cambio)
             if nueva_cantidad <= 0:
                 carrito.remove(item)
             else:
                 item['cantidad'] = nueva_cantidad
             break
-    
+
     session['carrito'] = carrito
-    return jsonify({'success': True})
+    tot = _carrito_totales()
+    return jsonify({
+        'success': True,
+        'carrito': carrito,
+        'total_subtotal': tot['total_subtotal'],
+        'costo_envio': tot['costo_envio'],
+        'descuento': tot['descuento'],
+        'total': tot['total']
+    })
 
 @app.route('/eliminar_producto', methods=['POST'])
 def eliminar_producto():
-    
-    data = request.json
+    data = request.json or {}
     producto_id = data.get('producto_id')
-    
+    talla = (data.get('talla') or 'Talla Única').strip()
+
     carrito = session.get('carrito', [])
-    carrito = [item for item in carrito if item['id'] != producto_id]
-    
+    carrito = [
+        item for item in carrito
+        if not (item['id'] == producto_id and (item.get('talla') or 'Talla Única') == talla)
+    ]
     session['carrito'] = carrito
-    return jsonify({'success': True})
+    tot = _carrito_totales()
+    return jsonify({
+        'success': True,
+        'carrito': carrito,
+        'total_subtotal': tot['total_subtotal'],
+        'costo_envio': tot['costo_envio'],
+        'descuento': tot['descuento'],
+        'total': tot['total']
+    })
 
 @app.route('/guardar_datos_envio', methods=['POST'])
 def guardar_datos_envio():
@@ -1034,94 +1060,6 @@ def procesar_pago_exitoso(metodo_pago, payment_id=None, datos_pago=None):
     session['numero_pedido'] = numero_pedido
     
     return redirect(url_for('pago_finalizado', estado='aprobado', pedido_id=pedido_id))
-
-@app.route('/iniciar_pago_mercadopago', methods=['POST'])
-def iniciar_pago_mercadopago():
-    carrito = session.get('carrito', [])
-    if not carrito:
-        return jsonify({'success': False, 'error': 'El carrito está vacío'}), 400
-    
-    # Validar datos de envío
-    datos_envio = session.get('datos_envio', {})
-    if not datos_envio.get('nombre') or not datos_envio.get('email'):
-        return jsonify({'success': False, 'error': 'Por favor completa los datos de contacto'}), 400
-    
-    # Calcular totales
-    subtotal = sum(item['precio'] * item['cantidad'] for item in carrito)
-    costo_envio = datos_envio.get('costo_envio', 0)
-    total = subtotal + costo_envio
-    
-    if not mp:
-        return jsonify({'success': False, 'error': 'Mercado Pago no está configurado correctamente'}), 500
-    
-    try:
-        # Crear preferencia de pago en Mercado Pago
-        items = []
-        for item in carrito:
-            items.append({
-                "title": item['nombre'],
-                "quantity": item['cantidad'],
-                "unit_price": float(item['precio'])
-            })
-        
-        # Agregar costo de envío si aplica
-        if costo_envio > 0:
-            items.append({
-                "title": "Costo de Envío",
-                "quantity": 1,
-                "unit_price": float(costo_envio)
-            })
-        
-        preference_data = {
-            "items": items,
-            "payer": {
-                "name": datos_envio.get('nombre', ''),
-                "email": datos_envio.get('email', ''),
-                "phone": {
-                    "number": datos_envio.get('telefono', '')
-                }
-            },
-            "back_urls": {
-                "success": request.url_root.rstrip('/') + url_for('confirmar_pago_mercadopago', status='success'),
-                "failure": request.url_root.rstrip('/') + url_for('confirmar_pago_mercadopago', status='failure'),
-                "pending": request.url_root.rstrip('/') + url_for('confirmar_pago_mercadopago', status='pending')
-            },
-            "auto_return": "approved",
-            "external_reference": str(uuid.uuid4())
-        }
-        
-        preference = mp.preference().create(preference_data)
-        
-        if preference and preference.get("status") == 201:
-            # Guardar información en sesión
-            session['mp_preference_id'] = preference["response"]["id"]
-            session['mp_external_reference'] = preference_data["external_reference"]
-            session['metodo_pago'] = 'mercadopago'
-            
-            # Redirigir a Mercado Pago
-            init_point = preference["response"]["init_point"]
-            return jsonify({'success': True, 'url': init_point})
-        else:
-            error_msg = 'Error al crear la preferencia de pago en Mercado Pago'
-            if preference and 'message' in preference:
-                error_msg += ': ' + str(preference.get('message'))
-            return jsonify({'success': False, 'error': error_msg}), 500
-    
-    except Exception as e:
-        print(f"Error en Mercado Pago: {str(e)}")
-        return jsonify({'success': False, 'error': f'Error al procesar el pago con Mercado Pago: {str(e)}'}), 500
-
-@app.route('/confirmar_pago_mercadopago')
-def confirmar_pago_mercadopago():
-    status = request.args.get('status', 'failure')
-    payment_id = request.args.get('payment_id')
-    preference_id = request.args.get('preference_id')
-    
-    if status == 'success' or status == 'approved':
-        # Pago exitoso - procesar igual que Webpay
-        return procesar_pago_exitoso('mercadopago', payment_id)
-    else:
-        return redirect(url_for('pago_finalizado', estado='rechazado'))
 
 @app.route('/iniciar_pago_webpay', methods=['POST'])
 def iniciar_pago_webpay():
